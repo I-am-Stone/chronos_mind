@@ -48,7 +48,7 @@ const apiLayer = {
 
             const result: T = await response.json();
             return { success: true, data: result };
-        } catch (error) {
+        } catch (error: unknown | any) {
             console.error("API Service Error:", error.message);
             return { success: false, error: error.message };
         }
