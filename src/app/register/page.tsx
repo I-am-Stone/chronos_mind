@@ -88,11 +88,11 @@ const RegisterPage = () => {
             });
 
             if (response.success) {
-                router.push('/login?registrationSuccess=true');
+                router.push('/login');
             } else {
                 setApiError(response.error || 'Registration failed. Please try again.');
             }
-            
+
         } catch (error) {
             console.error("Registration error:", error);
             setApiError('An unexpected error occurred. Please try again.');
