@@ -47,7 +47,7 @@ const Footer = () => {
   ];
 
   return (
-    <Card className="relative bg-gradient-to-b from-white-900 to-blue-900 text-gray-300 rounded-none border-none overflow-hidden">
+    <Card className="relative bg-gradient-to-b from-white-900 to-white-900 text-gray-300 rounded-none pt-8 border-t border-orange-300 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_-100px,rgba(255,255,255,0.05),transparent)]" />
       <CardContent className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

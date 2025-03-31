@@ -42,7 +42,7 @@ const LandingPage = () => {
       </div>
 
       {/* Features Section */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-orange-300">
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-12 font-cabinet-grotesk">
           Features designed for your well-being
         </h2>
@@ -61,7 +61,7 @@ const LandingPage = () => {
       </div>
 
       {/* How It Works Section */}
-      <div className="relative bg-gradient-to-b from-gray-50 to-white py-20">
+      <div className="relative bg-gradient-to-b from-white-900 to-white-900 py-20 border-orange-300">
         <div className="absolute inset-0 bg-[radial-gradient(circle_600px_at_50%_0px,rgba(56,189,248,0.08),transparent)] pointer-events-none" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12 font-cabinet-grotesk">
@@ -83,13 +83,13 @@ const LandingPage = () => {
       </div>
 
       {/* CTA Section */}
-      <Card className="relative bg-gradient-to-b from-teal-500/95 to-blue-500/95 text-white border-none rounded-none overflow-hidden">
+      <Card className="relative bg-gradient-to-b from-white-900 to-white-900 p-3 border-orange-300 rounded-none overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_0px,rgba(255,255,255,0.15),transparent)] pointer-events-none" />
         <CardContent className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-          <CardTitle className="text-3xl font-bold mb-6 text-white font-cabinet-grotesk">
+          <CardTitle className="text-3xl font-bold mb-6 text-black font-cabinet-grotesk">
             Ready to transform your productivity?
           </CardTitle>
-          <p className="text-xl mb-8 text-white/90 font-plus-jakarta">
+          <p className="text-xl mb-8 text-black/90 font-plus-jakarta">
             Join Today and Get a Free Wellness Guide!
           </p>
           <Button 
