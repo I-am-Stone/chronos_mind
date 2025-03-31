@@ -12,6 +12,8 @@ import GoalStreak from "./_partials/GoalStreak";
 import GoalRules from "./_partials/GoalRule"
 import { DeleteGoal } from "@/api/goals/deleteGoals"
 import { UpdateProgress } from "@/api/goals/progressUpdate"
+import { motion } from 'framer-motion';
+
 
 interface Goal {
   id: number;
@@ -156,9 +158,26 @@ export default function GoalsPage() {
 
   return (
       <SidebarLayout>
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+          <SidebarTrigger />
+          <div className="max-w-6xl mx-auto px-6 py-12">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center"
+            >
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Quest System
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">
+                Embark on a Quest of Goals
+              </p>
+            </motion.div>
+          </div>
+        </div>
         <div className="min-h-screen bg-slate-50">
           <div className="flex items-start p-4">
-            <SidebarTrigger className="lg:hidden" />
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-4xl mx-auto mt-6">
                 <Tabs defaultValue="dashboard" className="w-full">
