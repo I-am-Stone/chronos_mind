@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+'use Client';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, Award, Trophy } from "lucide-react";
 
 export default function GoalRules() {

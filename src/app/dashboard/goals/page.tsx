@@ -1,3 +1,4 @@
+'use client';  
 import SidebarLayout from "@/components/shared/sidebar/layout"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import GoalForm from "./_partials/GoalForm"
@@ -244,6 +245,6 @@ export default function GoalsPage() {
             </div>
           </div>
         </div>
-      </Layout>
+      </SidebarLayout>
   );
 }

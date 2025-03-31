@@ -71,7 +71,7 @@ import {
       color: "text-purple-500"
     },
     {
-      title: "Inventory",
+      title: "Shop",
       url: "#",
       icon: Backpack,
       color: "text-amber-500",

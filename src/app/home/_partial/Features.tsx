@@ -1,4 +1,5 @@
-// Enhanced features with consistent styling
+
+"use client";
 import {Award, BarChart2, Brain, Calendar, CheckCircle, Layout} from "lucide-react";
 
 export const features = [
