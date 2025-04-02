@@ -6,6 +6,7 @@ export const API_CONFIG = {
         POST_GOAL: '/api/goals/',
         GET_GOALS: '/api/goals/get-goals',
         UPDATE_PROGRESS: '/api/goals/progress/{goal_id}/',
-        DELETE_GOAL: '/api/goals/delete/{goal_id}/'
+        DELETE_GOAL: '/api/goals/delete/{goal_id}/',
+        STREAK: '/api/goals/get-goals-profile'
     }
 };

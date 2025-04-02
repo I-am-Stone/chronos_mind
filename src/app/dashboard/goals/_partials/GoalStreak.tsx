@@ -1,12 +1,20 @@
-'use C'
+'use Client';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Flame, Calendar, Trophy, Star } from "lucide-react";
+import type {StreakData}  from "@/helper/goalhelper/goalStreak";
 
-export default function GoalStreak() {
+interface goalStreakProps {
+  streak: StreakData;
+}
+
+export default function GoalStreak = ({streak}:goalStreakProps) {
+
+
+
   const data = [
     { 
       title: "Current Streak", 
-      value: 10, 
+      value: streak.currentStreak, 
       icon: Flame, 
       color: "text-orange-500",
       bgColor: "bg-orange-100 dark:bg-orange-900/30",
@@ -14,8 +22,8 @@ export default function GoalStreak() {
       description: "Days in a row"
     },
     { 
-      title: "Current Days", 
-      value: 10, 
+      title: "Last Progress Date", 
+      value: streak.last_progress_date, 
       icon: Calendar, 
       color: "text-blue-500",
       bgColor: "bg-blue-100 dark:bg-blue-900/30",
@@ -24,7 +32,25 @@ export default function GoalStreak() {
     },
     { 
       title: "Longest Streak", 
-      value: 10, 
+      value: streak.longest_streak, 
+      icon: Trophy, 
+      color: "text-purple-500",
+      bgColor: "bg-purple-100 dark:bg-purple-900/30",
+      borderColor: "border-purple-200 dark:border-purple-800",
+      description: "Your record"
+    },
+    { 
+      title: "Completed Goals", 
+      value: streak.total_goals_completed, 
+      icon: Trophy, 
+      color: "text-purple-500",
+      bgColor: "bg-purple-100 dark:bg-purple-900/30",
+      borderColor: "border-purple-200 dark:border-purple-800",
+      description: "Your record"
+    },
+    { 
+      title: "Total Goals", 
+      value: streak.total_goals, 
       icon: Trophy, 
       color: "text-purple-500",
       bgColor: "bg-purple-100 dark:bg-purple-900/30",
