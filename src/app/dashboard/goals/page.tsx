@@ -187,7 +187,6 @@ export default function GoalsPage() {
                       <TabsTrigger value="goals">Create Goals</TabsTrigger>
                       <TabsTrigger value="allgoals">All Goals</TabsTrigger>
                       <TabsTrigger value="rules">Rules</TabsTrigger>
-                      <TabsTrigger value="analytics">Analytics</TabsTrigger>
                     </TabsList>
                   </div>
                   <TabsContent value="dashboard">
@@ -252,11 +251,6 @@ export default function GoalsPage() {
                   <TabsContent value="rules">
                     <div className="p-4">
                     <GoalRules/>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="analytics">
-                    <div className="p-4">
-                      <h2 className="text-2xl font-semibold">Analytics Content</h2>
                     </div>
                   </TabsContent>
                 </Tabs>
