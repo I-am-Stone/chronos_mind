@@ -4,7 +4,7 @@ import {motion}  from "framer-motion";
 export function MotionAnimation() {
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {[...Array(180)].map((_, i) => (
+      {[...Array(60)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute w-2 h-2 bg-blue-400/50 rounded-full"

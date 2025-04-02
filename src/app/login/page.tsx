@@ -1,5 +1,7 @@
 'use client'
 import { useState } from 'react';
+import Link from 'next/link';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,6 +10,7 @@ import { MotionAnimation } from '@/components/shared/animations/MotionAnimation'
 import { Activity, Mail, Eye, EyeOff } from 'lucide-react';
 import { login } from '@/api/auth/login';
 
+
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -15,7 +18,8 @@ const LoginPage = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    
+      
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
@@ -151,9 +155,9 @@ const LoginPage = () => {
                     {/* Sign Up Link */}
                     <div className="text-center text-sm">
                         <span className="text-gray-600">Don't have an account?</span>{' '}
-                        <a href="#" className="text-orange-600 hover:text-orange-700 hover:underline font-medium">
+                        <Link href="/register" className="text-orange-600 hover:text-orange-700 hover:underline font-medium">
                             Sign up
-                        </a>
+                        </Link>
                     </div>
                 </CardContent>
             </Card>

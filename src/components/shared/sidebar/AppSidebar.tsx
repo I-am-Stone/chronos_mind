@@ -1,5 +1,4 @@
 import { 
-    Calendar, 
     User, 
     Target, 
     BarChart3, 
@@ -10,7 +9,7 @@ import {
     Book,
     Dumbbell,
   } from "lucide-react";
-  import {
+import {
     Sidebar,
     SidebarContent,
     SidebarGroup,
@@ -21,65 +20,60 @@ import {
     SidebarMenuItem,
   } from "@/components/ui/sidebar";
   
+import Link from "next/link";
   // Game-themed menu items with improved icons
   const items = [
     {
       title: "Profile",
-      url: "#",
+      url: "user_profile",
       icon: User,
       color: "text-cyan-500",
       badge: "Lvl 5"
     },
     {
       title: "Quests",
-      url: "#",
+      url: "goals",
       icon: Target,
       color: "text-emerald-500",
       badge: "3"
     },
     {
       title: "Habits",
-      url: "#",
+      url: "habit",
       icon: Dumbbell,
       color: "text-emerald-500",
       badge: "3"
     },
     {
       title: "Introspection",
-      url: "#",
+      url: "introspection",
       icon: ScrollText,
       color: "text-emerald-500",
       badge: "3"
     },
     {
       title: "User Manual",
-      url: "#",
+      url: "user_manual",
       icon: Book,
       color: "text-emerald-500",
       badge: "3"
     },
     {
-      title: "Calendar",
-      url: "#",
-      icon: Calendar,
-      color: "text-blue-500"
-    },
-    {
       title: "Stats",
-      url: "#",
+      url: "stats",
       icon: BarChart3,
       color: "text-purple-500"
     },
     {
       title: "Shop",
-      url: "#",
+      url: "shop",
       icon: Backpack,
       color: "text-amber-500",
       badge: "New"
     },
     {
       title: "Settings",
-      url: "#",
+      url: "settings",
       icon: Settings,
       color: "text-gray-500"
     },
@@ -118,7 +112,7 @@ import {
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title} className="my-1">
                     <SidebarMenuButton asChild>
-                      <a href={item.url} className="flex items-center justify-between group py-1.5 font-vt323 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-all">
+                      <Link href={item.url} className="flex items-center justify-between group py-1.5 font-vt323 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-all">
                         <div className="flex items-center">
                           <div className={`p-1.5 rounded-md mr-3 ${item.color} bg-opacity-10 group-hover:bg-opacity-20`}>
                             <item.icon className={`h-5 w-5 ${item.color}`} />
@@ -131,7 +125,7 @@ import {
                             {item.badge}
                           </span>
                         )}
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

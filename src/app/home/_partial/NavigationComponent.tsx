@@ -1,23 +1,10 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const Navigation = () => {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  
-  const handleNavigation = (path: string) => {
-    if (mounted) {
-      router.push(path);
-    }
-  };
-  
   return (
     <nav className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 shadow-lg border-t-2 border-orange-500 relative">
       <div className="absolute inset-0 bg-[radial-gradient(circle_400px_at_50%_300px,rgba(251,146,60,0.15),transparent)]" />
@@ -33,22 +20,24 @@ const Navigation = () => {
           </span>
         </div>
         <div className="flex gap-4">
-          <Button
-            onClick={() => handleNavigation('/login')}
-            variant="ghost"
-            className="font-plus-jakarta text-orange-600 hover:text-orange-700 tracking-wide relative group overflow-hidden"
-          >
-            <span className="relative z-10">Log in</span>
-            <div className="absolute inset-0 bg-orange-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-          </Button>
-          <Button
-            onClick={() => handleNavigation('/register')}
-            variant="default"
-            className="font-plus-jakarta bg-orange-500 hover:bg-orange-600 tracking-wide border-2 border-orange-600 relative group overflow-hidden"
-          >
-            <span className="relative z-10">Get Started</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/30 to-orange-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-          </Button>
+          <Link href="/login">
+            <Button
+              variant="ghost"
+              className="font-plus-jakarta text-orange-600 hover:text-orange-700 tracking-wide relative group overflow-hidden"
+            >
+              <span className="relative z-10">Log in</span>
+              <div className="absolute inset-0 bg-orange-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            </Button>
+          </Link>
+          <Link href="/register">
+            <Button
+              variant="default"
+              className="font-plus-jakarta bg-orange-500 hover:bg-orange-600 tracking-wide border-2 border-orange-600 relative group overflow-hidden"
+            >
+              <span className="relative z-10">Get Started</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/30 to-orange-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
