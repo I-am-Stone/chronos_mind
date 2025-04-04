@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react';
+import React from "react";
 import Link from 'next/link';
-
+import {useRouter} from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,7 @@ const LoginPage = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
     
       
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -28,6 +30,13 @@ const LoginPage = () => {
         try {
             const response = await login({ email, password });
             console.log('Login successful', response);
+            if (response.success) {
+                // @ts-ignore
+                const token = response.data?.token;
+                localStorage.setItem('authToken', token);
+
+                router.push('/dashboard/goals');
+            }
             // Handle successful login (e.g., redirect, store token)
         } catch (error) {
             console.error('Login error', error);

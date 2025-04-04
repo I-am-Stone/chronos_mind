@@ -6,6 +6,7 @@ interface GoalData {
     description: string;
     difficulty: string;
     target_date: string;
+    goal_type:String;
 }
 
 

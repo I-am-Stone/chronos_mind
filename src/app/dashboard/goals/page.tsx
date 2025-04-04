@@ -1,4 +1,4 @@
-'use client';  
+'use client';
 import SidebarLayout from "@/components/shared/sidebar/layout"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import GoalForm from "./_partials/GoalForm"
@@ -13,6 +13,8 @@ import GoalRules from "./_partials/GoalRule"
 import { DeleteGoal } from "@/api/goals/deleteGoals"
 import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
+import { GoalProfileData } from "@/helper/goalhelper/goalStreak";
+
 
 
 interface Goal {
@@ -36,6 +38,9 @@ export default function GoalsPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'title'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // Use the custom hook to get streak data
+  const profileData = GoalProfileData();
 
   useEffect(() => {
     const fetchGoals = async () => {
@@ -61,7 +66,9 @@ export default function GoalsPage() {
       }
     };
 
-    fetchGoals();
+    fetchGoals().then((result) => {
+      console.log(result);
+    });
   }, [refreshTrigger]);
 
   const filteredGoals = useMemo(() => {
@@ -113,7 +120,6 @@ export default function GoalsPage() {
 
   const handleProgressUpdate = async (id: number, progress: number) => {
     console.log('Updating progress for goal with id:', id, 'to', progress);
-    const progress_increment = progress
 
     try {
       setGoals(prevGoals =>
@@ -132,7 +138,7 @@ export default function GoalsPage() {
           )
       );
       try {
-        const response = await UpdateProgress(id, progress_increment);
+        const response = await UpdateProgress(id, progress);
         if (!response.success) {
           console.error('Failed to update progress:', response.error);
         }else {
@@ -162,10 +168,10 @@ export default function GoalsPage() {
           <SidebarTrigger />
           <div className="max-w-6xl mx-auto px-6 py-12">
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center"
             >
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Quest System
@@ -191,7 +197,7 @@ export default function GoalsPage() {
                   </div>
                   <TabsContent value="dashboard">
                     <div className="p-4">
-                      <GoalStreak />
+                      {profileData?.streak && <GoalStreak streak={profileData.streak} />}
                       {/* <CharacterSprite /> */}
                     </div>
                   </TabsContent>
@@ -250,7 +256,7 @@ export default function GoalsPage() {
                   </TabsContent>
                   <TabsContent value="rules">
                     <div className="p-4">
-                    <GoalRules/>
+                      <GoalRules/>
                     </div>
                   </TabsContent>
                 </Tabs>

@@ -1,8 +1,8 @@
-'use client'
+'use client';
 import { useEffect, useState } from "react";
 import { GetGoalProfile } from '@/api/goals/goalProfileData';
 
-interface StreakData {
+export interface StreakData {
   user: number;
   current_streak: number;
   points: number;
@@ -19,7 +19,7 @@ export const GoalProfileData = () => {
     const fetchStreak = async () => {
       try {
         const response = await GetGoalProfile();
-        
+
         if (response.success && response.data) {
           console.log("API Response:", response.data);
           setStreak(response.data);
@@ -31,9 +31,10 @@ export const GoalProfileData = () => {
       }
     };
 
-    fetchStreak();
+    fetchStreak().then((result) => {
+      console.log(result);
+    });
   }, []);
 
-  console.log(streak); 
-  return streak;
+  return {streak};
 };

@@ -1,6 +1,5 @@
 'use client';
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ interface GoalData {
   description: string;
   difficulty: string;
   target_date: string;
+  goal_type: string;
 }
 
 interface GoalFormProps {
@@ -27,10 +27,15 @@ export function GoalForm({ onGoalCreated }: GoalFormProps) {
     { level: 'Hard', color: 'bg-red-500' }
   ];
 
+  const goalType = [
+    { level: 'personal', color: 'bg-sky-500' },
+    { level: 'Professional', color: 'bg-orange-500' },
+  ];
   const [goal_title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [targetDate, setTargetDate] = useState('');
+  const [type, setType] = useState('');
 
   async function createGoal(data: GoalData) {
     try {
@@ -42,6 +47,7 @@ export function GoalForm({ onGoalCreated }: GoalFormProps) {
         setDescription('');
         setDifficulty('');
         setTargetDate('');
+        setType('');
         if (onGoalCreated) {
           onGoalCreated();
         }
@@ -61,6 +67,7 @@ export function GoalForm({ onGoalCreated }: GoalFormProps) {
       description,
       difficulty,
       target_date: targetDate,
+      goal_type: type
     };
 
     await createGoal(goalData);
@@ -150,7 +157,33 @@ export function GoalForm({ onGoalCreated }: GoalFormProps) {
                   </SelectContent>
                 </Select>
               </div>
-
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Sword className="w-5 h-5 text-red-500" />
+                  <Label htmlFor="goalType" className="text-lg font-press-start">Goal Type</Label>
+                </div>
+                <Select
+                    name="goalType"
+                    value={type}
+                    onValueChange={setType}
+                    required
+                >
+                  <SelectTrigger className="w-full border-2 text-lg font-vt323 h-12 bg-white/90 shadow-inner">
+                    <SelectValue placeholder="Goal Type" />
+                  </SelectTrigger>
+                  <SelectContent className="font-vt323 text-lg border-2">
+                    {goalType.map((type) => (
+                        <SelectItem
+                            key={type.level}
+                            value={type.level.toLowerCase()}
+                            className={`${type.color} cursor-pointer hover:bg-slate-100`}
+                        >
+                          {type.level}
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                   type="submit"
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white font-press-start py-6"

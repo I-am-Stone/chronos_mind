@@ -1,6 +1,6 @@
 import { API_CONFIG } from "@/config/api.config";
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
     success: boolean;
     data?: T;
     error?: string;
@@ -48,7 +48,7 @@ const apiLayer = {
 
             const result: T = await response.json();
             return { success: true, data: result };
-        } catch (error: unknown | any) {
+        } catch (error: any) {
             console.error("API Service Error:", error.message);
             return { success: false, error: error.message };
         }

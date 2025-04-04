@@ -1,7 +1,15 @@
 "use client";
 import {motion}  from "framer-motion";
+import {useEffect, useState} from "react";
 
 export function MotionAnimation() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) return null;
   return (
     <div className="absolute inset-0 pointer-events-none">
       {[...Array(60)].map((_, i) => (
