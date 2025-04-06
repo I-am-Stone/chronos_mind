@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { MotionAnimation } from '@/components/shared/animations/MotionAnimation';
 import { register } from '@/api/auth/register';
 import Link from 'next/link';
+import { toast, Toaster } from 'sonner';
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
@@ -89,6 +90,7 @@ const RegisterPage = () => {
 
             if (response.success) {
                 router.push('/login');
+                toast.success('Registration successful');
             } else {
                 setApiError(response.error || 'Registration failed. Please try again.');
             }
@@ -120,7 +122,7 @@ const RegisterPage = () => {
         <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-indigo-50/30 flex flex-col items-center justify-center p-4 font-plus-jakarta">
             <MotionAnimation />
             <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,rgba(99,102,241,0.05),transparent)] pointer-events-none" />
-
+            <Toaster position="top-right" />
             <div className="flex items-center gap-2 mb-8 group">
                 <Activity className="h-8 w-8 text-orange-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-2xl font-cabinet-grotesk tracking-wider text-gray-900">

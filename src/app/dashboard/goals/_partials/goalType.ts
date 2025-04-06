@@ -5,4 +5,5 @@ export interface backendGoal {
     target_date: string;
     difficulty: string;
     progress_bar: number;
+    goal_type: string;
   }

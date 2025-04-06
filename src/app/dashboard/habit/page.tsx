@@ -35,19 +35,9 @@ const HabitsPage: React.FC = () => {
       <div className="max-w-6xl mx-auto px-6 py-8">
         <Tabs defaultValue="habits" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="habits">Dashboard</TabsTrigger>
             <TabsTrigger value="create">Create Habit</TabsTrigger>
             <TabsTrigger value="strategies">Strategies</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="habits">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-            </motion.div>
-          </TabsContent>
 
           <TabsContent value="create">
             <div>

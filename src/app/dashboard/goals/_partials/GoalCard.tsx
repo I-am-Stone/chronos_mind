@@ -16,6 +16,7 @@ interface Goal {
   targetDate: string;
   progress: number;
   difficulty: string;
+  goal_type: string;
 }
 
 interface GoalCardProps {
@@ -70,6 +71,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                 <Badge>
                   {goal.difficulty.replace('-', ' ').charAt(0).toUpperCase() + goal.difficulty.slice(1)}  
                 </Badge>
+                <Badge variant="outline">
+                  {goal.goal_type.replace('-', ' ').charAt(0).toUpperCase() + goal.goal_type.slice(1)}
+                </Badge>
               </div>
               <div className="max-h-32 overflow-y-auto">
                 <p className="text-gray-600 mb-2 font-vt323 break-all whitespace-normal overflow-hidden">
@@ -91,7 +95,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                 onClick={() => onDelete(goal.id)}
               >
                 <TrashIcon className="h-4 w-4 text-red-500" />
-              </Button>'use Client';
+              </Button>
             </div>
           </div>
           <div className="space-y-4">

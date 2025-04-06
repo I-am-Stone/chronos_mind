@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { MotionAnimation } from '@/components/shared/animations/MotionAnimation';
 import { Activity, Mail, Eye, EyeOff } from 'lucide-react';
 import { login } from '@/api/auth/login';
+import { toast, Toaster } from 'sonner';
 
 
 const LoginPage = () => {
@@ -20,6 +21,7 @@ const LoginPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
+
     
       
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -34,6 +36,7 @@ const LoginPage = () => {
                 // @ts-ignore
                 const token = response.data?.token;
                 localStorage.setItem('authToken', token);
+                toast.success('Login successful');
 
                 router.push('/dashboard/goals');
             }
@@ -62,6 +65,7 @@ const LoginPage = () => {
                     Healthy Task Manager
                 </span>
             </div>
+            <Toaster position="top-right" />
 
             {/* Login Card */}
             <Card className="w-full max-w-md relative overflow-hidden bg-white/70 backdrop-blur-sm">

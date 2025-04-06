@@ -17,29 +17,17 @@ import { GoalProfileData } from "@/helper/goalhelper/goalStreak";
 
 
 
-interface Goal {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  targetDate: string;
-  progress: number;
-  difficulty: string;
-}
-
 export default function GoalsPage() {
   const [goals, setGoals] = useState<backendGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Filter and sort states
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'title'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Use the custom hook to get streak data
   const profileData = GoalProfileData();
 
   useEffect(() => {
@@ -95,7 +83,6 @@ export default function GoalsPage() {
             comparison = a.goal_title.localeCompare(b.goal_title);
           }
 
-          // Apply sort order
           return sortOrder === 'asc' ? comparison : -comparison;
         });
   }, [goals, searchTerm, filterStatus, sortBy, sortOrder]);
@@ -240,6 +227,7 @@ export default function GoalsPage() {
                                     targetDate: backendGoal.target_date,
                                     difficulty: backendGoal.difficulty,
                                     progress: backendGoal.progress_bar,
+                                    goal_type: backendGoal.goal_type,
                                     status: backendGoal.progress_bar === 100
                                         ? 'completed'
                                         : backendGoal.progress_bar > 0

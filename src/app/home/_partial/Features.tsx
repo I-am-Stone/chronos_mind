@@ -15,8 +15,8 @@ export const features = [
     },
     {
         icon: <Brain className="w-8 h-8 text-purple-600"/>,
-        title: "Wellness Insights",
-        description: "Get personalized recommendations for mental and physical well-being"
+        title: "Introspection",
+        description: "Receive personalized recommendations to improve your mental and physical well-being"
     },
     {
         icon: <CheckCircle className="w-8 h-8 text-green-600"/>,

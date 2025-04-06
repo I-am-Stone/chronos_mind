@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Bell, Trophy, Zap, Shield, AlertTriangle, Star } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 interface Notification {
   id: number;

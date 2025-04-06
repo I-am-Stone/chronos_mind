@@ -105,10 +105,10 @@ const IntrospectionSection = () => {
   
   // Helper function to get color based on score
   const getScoreColor = (score) => {
-    if (score >= 8) return "text-green-500";
-    if (score >= 6) return "text-emerald-500";
-    if (score >= 4) return "text-amber-500";
-    return "text-red-500";
+    if (score >= 8) return "text-green-600";
+    if (score >= 6) return "text-blue-600";
+    if (score >= 4) return "text-amber-600";
+    return "text-red-600";
   };
   
   // Estimate points based on metrics and text length
@@ -119,333 +119,336 @@ const IntrospectionSection = () => {
   
   return (
     <SidebarLayout>
-    <div className="bg-gray-900 text-gray-100 rounded-lg shadow-xl p-1 overflow-hidden">
-      <Tabs defaultValue="session" className="w-full">
-        <div className="bg-gray-800 px-4 py-3 rounded-t-lg">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-bold text-white flex items-center">
-              <Brain className="mr-2 text-indigo-400" size={24} />
-              Mind Lab: Introspection Chamber
-            </h2>
-            <Badge variant="outline" className="bg-indigo-900 text-indigo-100 border-indigo-700 px-3 py-1">
-              <Award className="mr-1" size={14} />
-              Level 3
-            </Badge>
-          </div>
-          
-          <TabsList className="grid grid-cols-3 bg-gray-700 rounded-md">
-            <TabsTrigger value="session" className="data-[state=active]:bg-indigo-700 data-[state=active]:text-white">
-              <Brain className="mr-2 h-4 w-4" /> New Session
-            </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-indigo-700 data-[state=active]:text-white">
-              <History className="mr-2 h-4 w-4" /> History
-            </TabsTrigger>
-            <TabsTrigger value="analysis" className="data-[state=active]:bg-indigo-700 data-[state=active]:text-white">
-              <Bot className="mr-2 h-4 w-4" /> AI Analysis
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <div className="p-4">
-          {/* New Introspection Session Tab */}
-          <TabsContent value="session" className="mt-0">
-            <div className="bg-gray-800 p-4 rounded-lg mb-4">
-              <h3 className="text-lg font-semibold text-indigo-300 mb-2 flex items-center">
-                <Lightbulb className="mr-2" size={18} />
-                Session Status
-              </h3>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-gray-700 p-3 rounded-lg text-center">
-                  <div className="text-xs text-gray-400 mb-1">Cognitive Average</div>
-                  <div className={`text-2xl font-bold ${getScoreColor(cognitiveAvg)}`}>
-                    {cognitiveAvg.toFixed(1)}/10
-                  </div>
-                </div>
-                <div className="bg-gray-700 p-3 rounded-lg text-center">
-                  <div className="text-xs text-gray-400 mb-1">Emotional Average</div>
-                  <div className={`text-2xl font-bold ${getScoreColor(emotionalAvg)}`}>
-                    {emotionalAvg.toFixed(1)}/10
-                  </div>
-                </div>
+      <div className="p-6 md:p-8 max-w-5xl mx-auto">
+        <div className="bg-white text-black rounded-xl shadow-lg overflow-hidden border border-gray-200">
+          <Tabs defaultValue="session" className="w-full">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-500 px-6 py-5 rounded-t-xl">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
+                <h2 className="text-2xl font-bold text-white flex items-center">
+                  <Brain className="mr-3 text-white" size={28} />
+                  Mind Lab: Introspection Chamber
+                </h2>
+                <Badge variant="outline" className="bg-white text-blue-600 border-white px-3 py-1 text-sm font-medium self-start md:self-auto">
+                  <Award className="mr-2" size={16} />
+                  Level 3
+                </Badge>
               </div>
-              <div className="bg-gray-700 p-3 rounded-lg text-center mb-3">
-                <div className="text-xs text-gray-400 mb-1">Estimated Points</div>
-                <div className="text-2xl font-bold text-indigo-400">
-                  +{estimatedPoints} pts
-                </div>
-                <div className="text-xs text-gray-400 mt-1">Complete your introspection to earn</div>
-              </div>
+              
+              <TabsList className="grid grid-cols-3 bg-blue-800/30 rounded-md p-1">
+                <TabsTrigger value="session" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md">
+                  <Brain className="mr-2 h-4 w-4" /> New Session
+                </TabsTrigger>
+                <TabsTrigger value="history" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md">
+                  <History className="mr-2 h-4 w-4" /> History
+                </TabsTrigger>
+                <TabsTrigger value="analysis" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md">
+                  <Bot className="mr-2 h-4 w-4" /> AI Analysis
+                </TabsTrigger>
+              </TabsList>
             </div>
             
-            <div className="space-y-6">
-              {/* Cognitive Metrics */}
-              <Card className="bg-gray-800 border-gray-700 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-white flex items-center">
-                    <Brain className="mr-2 text-indigo-400" size={18} />
-                    Cognitive Metrics
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Rate your current cognitive state (0-10)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Object.entries(cognitiveMetrics).map(([key, value]) => (
-                    <div key={key} className="space-y-1">
-                      <div className="flex justify-between">
-                        <label className="text-sm text-gray-300 capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </label>
-                        <span className={`text-sm font-medium ${getScoreColor(value)}`}>
-                          {value}
-                        </span>
+            <div className="p-6">
+              {/* New Introspection Session Tab */}
+              <TabsContent value="session" className="mt-0 space-y-6">
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-blue-800 mb-4 flex items-center">
+                    <Lightbulb className="mr-3 text-amber-500" size={20} />
+                    Session Status
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-white p-4 rounded-xl shadow-sm text-center border border-gray-200 hover:shadow-md transition-shadow">
+                      <div className="text-sm text-gray-600 mb-2">Cognitive Average</div>
+                      <div className={`text-3xl font-bold ${getScoreColor(cognitiveAvg)}`}>
+                        {cognitiveAvg.toFixed(1)}/10
                       </div>
-                      <Slider
-                        defaultValue={[value]}
-                        max={10}
-                        step={0.5}
-                        onValueChange={(newValue) => handleMetricChange('cognitive', key, newValue)}
-                        className="[&_[role=slider]]:bg-indigo-600"
-                      />
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-              
-              {/* Emotional Metrics */}
-              <Card className="bg-gray-800 border-gray-700 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-white flex items-center">
-                    <Heart className="mr-2 text-pink-400" size={18} />
-                    Emotional Metrics
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Rate your current emotional state (0-10)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Object.entries(emotionalMetrics).map(([key, value]) => (
-                    <div key={key} className="space-y-1">
-                      <div className="flex justify-between">
-                        <label className="text-sm text-gray-300 capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </label>
-                        <span className={`text-sm font-medium ${getScoreColor(value)}`}>
-                          {value}
-                        </span>
+                    <div className="bg-white p-4 rounded-xl shadow-sm text-center border border-gray-200 hover:shadow-md transition-shadow">
+                      <div className="text-sm text-gray-600 mb-2">Emotional Average</div>
+                      <div className={`text-3xl font-bold ${getScoreColor(emotionalAvg)}`}>
+                        {emotionalAvg.toFixed(1)}/10
                       </div>
-                      <Slider
-                        defaultValue={[value]}
-                        max={10}
-                        step={0.5}
-                        onValueChange={(newValue) => handleMetricChange('emotional', key, newValue)}
-                        className="[&_[role=slider]]:bg-pink-600"
-                      />
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-              
-              {/* Qualitative Data */}
-              <Card className="bg-gray-800 border-gray-700 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-white">Qualitative Reflections</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Share additional context about your current state
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm text-gray-300">Observations and Notes</label>
-                    <Textarea 
-                      placeholder="What are you noticing about your thoughts and feelings right now?"
-                      className="bg-gray-700 border-gray-600 focus:border-indigo-500 text-white"
-                      value={qualitativeData.observations}
-                      onChange={(e) => handleTextChange('observations', e.target.value)}
-                      rows={3}
-                    />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm text-gray-300">Environmental Factors</label>
-                    <Textarea 
-                      placeholder="How is your environment affecting you? (noise, light, etc.)"
-                      className="bg-gray-700 border-gray-600 focus:border-indigo-500 text-white"
-                      value={qualitativeData.environmental_factors}
-                      onChange={(e) => handleTextChange('environmental_factors', e.target.value)}
-                      rows={2}
-                    />
+                  <div className="bg-white p-5 rounded-xl shadow-sm text-center mb-2 border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="text-sm text-gray-600 mb-2">Estimated Points</div>
+                    <div className="text-3xl font-bold text-green-600 flex items-center justify-center">
+                      <Award className="mr-2 text-amber-500" size={24} />
+                      +{estimatedPoints} pts
+                    </div>
+                    <div className="text-sm text-gray-500 mt-2">Complete your introspection to earn</div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm text-gray-300">Physical State</label>
-                    <Textarea 
-                      placeholder="How does your body feel? (energy, pain, comfort, etc.)"
-                      className="bg-gray-700 border-gray-600 focus:border-indigo-500 text-white"
-                      value={qualitativeData.physical_state}
-                      onChange={(e) => handleTextChange('physical_state', e.target.value)}
-                      rows={2}
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
-                    Complete Introspection
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          {/* History Tab */}
-          <TabsContent value="history" className="mt-0">
-            <div className="bg-gray-800 p-4 rounded-lg mb-4">
-              <h3 className="text-lg font-semibold text-indigo-300 mb-3 flex items-center">
-                <Calendar className="mr-2" size={18} />
-                Introspection History
-              </h3>
-              <div className="text-sm text-gray-400 mb-4">
-                Review your previous introspection sessions and track your progress
-              </div>
-              
-              <div className="space-y-4">
-                {introspectionHistory.map((session) => (
-                  <Card key={session.id} className="bg-gray-700 border-gray-600">
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Cognitive Metrics */}
+                  <Card>
                     <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-white text-lg">Session #{session.id}</CardTitle>
-                        <Badge className="bg-indigo-600">+{session.points_earned} pts</Badge>
-                      </div>
-                      <CardDescription className="text-gray-400">
-                        {session.date}
+                      <CardTitle className="text-black flex items-center text-xl">
+                        <Brain className="mr-3 text-blue-600" size={20} />
+                        Cognitive Metrics
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 text-base">
+                        Rate your current cognitive state (0-10)
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div className="bg-gray-800 p-2 rounded text-center">
-                          <div className="text-xs text-gray-400 mb-1">Cognitive</div>
-                          <div className={`text-xl font-bold ${getScoreColor(session.cognitive_avg)}`}>
-                            {session.cognitive_avg.toFixed(1)}/10
+                    <CardContent className="space-y-5 px-6">
+                      {Object.entries(cognitiveMetrics).map(([key, value]) => (
+                        <div key={key} className="space-y-2">
+                          <div className="flex justify-between">
+                            <label className="text-base text-gray-800 capitalize font-medium">
+                              {key.replace(/_/g, ' ')}
+                            </label>
+                            <span className={`text-base font-medium ${getScoreColor(value)}`}>
+                              {value}
+                            </span>
                           </div>
+                          <Slider
+                            defaultValue={[value]}
+                            max={10}
+                            step={0.5}
+                            onValueChange={(newValue) => handleMetricChange('cognitive', key, newValue)}
+                            className="[&_[role=slider]]:bg-blue-600 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5"
+                          />
                         </div>
-                        <div className="bg-gray-800 p-2 rounded text-center">
-                          <div className="text-xs text-gray-400 mb-1">Emotional</div>
-                          <div className={`text-xl font-bold ${getScoreColor(session.emotional_avg)}`}>
-                            {session.emotional_avg.toFixed(1)}/10
+                      ))}
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Emotional Metrics */}
+                  <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow rounded-xl">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-black flex items-center text-xl">
+                        <Heart className="mr-3 text-rose-600" size={20} />
+                        Emotional Metrics
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 text-base">
+                        Rate your current emotional state (0-10)
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-5 px-6">
+                      {Object.entries(emotionalMetrics).map(([key, value]) => (
+                        <div key={key} className="space-y-2">
+                          <div className="flex justify-between">
+                            <label className="text-base text-gray-800 capitalize font-medium">
+                              {key.replace(/_/g, ' ')}
+                            </label>
+                            <span className={`text-base font-medium ${getScoreColor(value)}`}>
+                              {value}
+                            </span>
                           </div>
+                          <Slider
+                            defaultValue={[value]}
+                            max={10}
+                            step={0.5}
+                            onValueChange={(newValue) => handleMetricChange('emotional', key, newValue)}
+                            className="[&_[role=slider]]:bg-rose-600 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5"
+                          />
                         </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Qualitative Data */}
+                  <Card className="bg-white">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-black text-xl">Qualitative Reflections</CardTitle>
+                      <CardDescription className="text-gray-600 text-base">
+                        Share additional context about your current state
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-5 px-6">
+                      <div className="space-y-2">
+                        <label className="text-base text-gray-800 font-medium">Observations and Notes</label>
+                        <Textarea 
+                          placeholder="What are you noticing about your thoughts and feelings right now?"
+                          className="bg-white border-gray-300 focus:border-blue-500 text-black min-h-24 p-3 text-base"
+                          value={qualitativeData.observations}
+                          onChange={(e) => handleTextChange('observations', e.target.value)}
+                          rows={3}
+                        />
                       </div>
-                      <div className="text-sm text-gray-300 border-t border-gray-600 pt-3">
-                        <p className="italic">"{session.notes}"</p>
+                      <div className="space-y-2">
+                        <label className="text-base text-gray-800 font-medium">Environmental Factors</label>
+                        <Textarea 
+                          placeholder="How is your environment affecting you? (noise, light, etc.)"
+                          className="bg-white border-gray-300 focus:border-blue-500 text-black p-3 text-base"
+                          value={qualitativeData.environmental_factors}
+                          onChange={(e) => handleTextChange('environmental_factors', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-base text-gray-800 font-medium">Physical State</label>
+                        <Textarea 
+                          placeholder="How does your body feel? (energy, pain, comfort, etc.)"
+                          className="bg-white border-gray-300 focus:border-blue-500 text-black p-3 text-base"
+                          value={qualitativeData.physical_state}
+                          onChange={(e) => handleTextChange('physical_state', e.target.value)}
+                          rows={2}
+                        />
                       </div>
                     </CardContent>
-                    <CardFooter className="border-t border-gray-600 pt-3">
-                      <Button variant="outline" size="sm" className="w-full border-gray-500 text-gray-300 hover:bg-gray-600">
-                        View Full Details
+                    <CardFooter className="pt-2 px-6 pb-6">
+                      <Button className="w-full bg-green-600 hover:bg-green-700 text-white text-base py-6 rounded-lg font-semibold transition-colors">
+                        Complete Introspection
                       </Button>
                     </CardFooter>
                   </Card>
-                ))}
-              </div>
+                </div>
+              </TabsContent>
               
-              <div className="mt-4 text-center">
-                <Button variant="link" className="text-indigo-400">
-                  View All History
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* AI Analysis Tab */}
-          <TabsContent value="analysis" className="mt-0">
-            <Alert className="bg-indigo-950 border-indigo-800 mb-4">
-              <Bot className="h-5 w-5 text-indigo-400" />
-              <AlertTitle className="text-indigo-300">AI Analysis Active</AlertTitle>
-              <AlertDescription className="text-gray-300">
-                Your Mind Lab AI has analyzed your recent introspection data and prepared insights.
-              </AlertDescription>
-            </Alert>
-            
-            <Card className="bg-gray-800 border-gray-700 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-white">Cognitive-Emotional Analysis</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Based on your session from {currentAnalysis.created_at}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-gray-700 rounded-lg p-3">
-                  <h3 className="text-indigo-300 font-medium mb-1">Overall Assessment</h3>
-                  <p className="text-gray-300 text-sm">{currentAnalysis.overall_response}</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <h3 className="text-indigo-300 font-medium mb-1">Cognitive Evaluation</h3>
-                    <p className="text-gray-300 text-sm">{currentAnalysis.cognitive_evaluation}</p>
+              {/* History Tab */}
+              <TabsContent value="history" className="mt-0">
+                <div className="bg-blue-50 p-6 rounded-xl shadow-sm mb-6 border border-blue-100">
+                  <h3 className="text-xl font-semibold text-blue-800 mb-3 flex items-center">
+                    <Calendar className="mr-3 text-amber-500" size={20} />
+                    Introspection History
+                  </h3>
+                  <div className="text-base text-gray-600 mb-6">
+                    Review your previous introspection sessions and track your progress
                   </div>
                   
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <h3 className="text-pink-300 font-medium mb-1">Emotional Evaluation</h3>
-                    <p className="text-gray-300 text-sm">{currentAnalysis.emotional_evaluation}</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <h3 className="text-green-400 font-medium mb-1 flex items-center">
-                      <CheckCircle size={16} className="mr-1" />
-                      Strengths
-                    </h3>
-                    <ul className="text-gray-300 text-sm pl-2">
-                      {currentAnalysis.strengths.map((strength, index) => (
-                        <li key={index} className="mb-1 flex items-start">
-                          <span className="text-green-400 mr-1">•</span> {strength}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <h3 className="text-amber-400 font-medium mb-1">Areas for Improvement</h3>
-                    <ul className="text-gray-300 text-sm pl-2">
-                      {currentAnalysis.areas_for_improvement.map((area, index) => (
-                        <li key={index} className="mb-1 flex items-start">
-                          <span className="text-amber-400 mr-1">•</span> {area}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-700 rounded-lg p-3">
-                  <h3 className="text-blue-400 font-medium mb-2">Recommendations</h3>
-                  <div className="space-y-2">
-                    {currentAnalysis.recommendations.map((rec, index) => (
-                      <div key={index} className="bg-gray-800 p-2 rounded text-sm text-gray-300 flex items-center">
-                        <Lightbulb size={16} className="text-blue-400 mr-2 flex-shrink-0" />
-                        {rec}
-                      </div>
+                  <div className="space-y-6">
+                    {introspectionHistory.map((session) => (
+                      <Card key={session.id} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow rounded-xl">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-black text-xl">Session #{session.id}</CardTitle>
+                            <Badge className="bg-green-600 px-3 py-1">+{session.points_earned} pts</Badge>
+                          </div>
+                          <CardDescription className="text-gray-600 text-base">
+                            {session.date}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="bg-blue-50 p-3 rounded-lg text-center border border-blue-100">
+                              <div className="text-sm text-gray-600 mb-1">Cognitive</div>
+                              <div className={`text-2xl font-bold ${getScoreColor(session.cognitive_avg)}`}>
+                                {session.cognitive_avg.toFixed(1)}/10
+                              </div>
+                            </div>
+                            <div className="bg-blue-50 p-3 rounded-lg text-center border border-blue-100">
+                              <div className="text-sm text-gray-600 mb-1">Emotional</div>
+                              <div className={`text-2xl font-bold ${getScoreColor(session.emotional_avg)}`}>
+                                {session.emotional_avg.toFixed(1)}/10
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-base text-gray-800 border-t border-gray-200 pt-4">
+                            <p className="italic">"{session.notes}"</p>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="border-t border-gray-200 pt-4 pb-4">
+                          <Button variant="outline" size="sm" className="w-full border-gray-300 text-gray-800 hover:bg-gray-100 py-5 text-base rounded-lg">
+                            View Full Details
+                          </Button>
+                        </CardFooter>
+                      </Card>
                     ))}
                   </div>
+                  
+                  <div className="mt-6 text-center">
+                    <Button variant="link" className="text-blue-600 text-base font-medium">
+                      View All History
+                    </Button>
+                  </div>
                 </div>
+              </TabsContent>
+              
+              {/* AI Analysis Tab */}
+              <TabsContent value="analysis" className="mt-0">
+                <Alert className="bg-blue-50 border-blue-200 mb-6 p-4 rounded-xl">
+                  <Bot className="h-6 w-6 text-blue-600" />
+                  <AlertTitle className="text-blue-800 text-lg">AI Analysis Active</AlertTitle>
+                  <AlertDescription className="text-gray-800 text-base mt-1">
+                    Your Mind Lab AI has analyzed your recent introspection data and prepared insights.
+                  </AlertDescription>
+                </Alert>
                 
-                <div className="bg-indigo-900/30 rounded-lg p-3 border border-indigo-800">
-                  <h3 className="text-indigo-300 font-medium mb-1">Conclusion</h3>
-                  <p className="text-gray-300 text-sm">{currentAnalysis.conclusion}</p>
-                </div>
-              </CardContent>
-              <CardFooter className="border-t border-gray-700 pt-4 flex justify-between">
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
-                  Previous Analysis
-                </Button>
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  Apply Recommendations
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
+                <Card className="bg-white border-gray-200 shadow-md rounded-xl">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-black text-xl">Cognitive-Emotional Analysis</CardTitle>
+                    <CardDescription className="text-gray-600 text-base">
+                      Based on your session from {currentAnalysis.created_at}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6 px-6">
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 shadow-sm">
+                      <h3 className="text-blue-800 font-medium text-lg mb-2">Overall Assessment</h3>
+                      <p className="text-gray-800 text-base">{currentAnalysis.overall_response}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 shadow-sm">
+                        <h3 className="text-blue-800 font-medium text-lg mb-2">Cognitive Evaluation</h3>
+                        <p className="text-gray-800 text-base">{currentAnalysis.cognitive_evaluation}</p>
+                      </div>
+                      
+                      <div className="bg-rose-50 rounded-xl p-4 border border-rose-100 shadow-sm">
+                        <h3 className="text-rose-800 font-medium text-lg mb-2">Emotional Evaluation</h3>
+                        <p className="text-gray-800 text-base">{currentAnalysis.emotional_evaluation}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-green-50 rounded-xl p-4 border border-green-100 shadow-sm">
+                        <h3 className="text-green-800 font-medium text-lg mb-3 flex items-center">
+                          <CheckCircle size={18} className="mr-2" />
+                          Strengths
+                        </h3>
+                        <ul className="text-gray-800 text-base pl-2 space-y-2">
+                          {currentAnalysis.strengths.map((strength, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-green-600 mr-2 text-lg">•</span> {strength}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 shadow-sm">
+                        <h3 className="text-amber-800 font-medium text-lg mb-3">Areas for Improvement</h3>
+                        <ul className="text-gray-800 text-base pl-2 space-y-2">
+                          {currentAnalysis.areas_for_improvement.map((area, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-amber-600 mr-2 text-lg">•</span> {area}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 shadow-sm">
+                      <h3 className="text-blue-800 font-medium text-lg mb-3">Recommendations</h3>
+                      <div className="space-y-3">
+                        {currentAnalysis.recommendations.map((rec, index) => (
+                          <div key={index} className="bg-white p-3 rounded-lg text-base text-gray-800 flex items-center border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                            <Lightbulb size={18} className="text-amber-500 mr-3 flex-shrink-0" />
+                            {rec}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-100 rounded-xl p-4 border border-blue-200 shadow-sm">
+                      <h3 className="text-blue-800 font-medium text-lg mb-2">Conclusion</h3>
+                      <p className="text-gray-800 text-base">{currentAnalysis.conclusion}</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="border-t border-gray-200 pt-5 pb-6 px-6 flex flex-col md:flex-row justify-between gap-4">
+                    <Button variant="outline" className="border-gray-300 text-gray-800 hover:bg-gray-100 py-5 text-base rounded-lg">
+                      Previous Analysis
+                    </Button>
+                    <Button className="bg-green-600 hover:bg-green-700 text-white py-5 text-base rounded-lg font-semibold transition-colors">
+                      Apply Recommendations
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
-      </Tabs>
-    </div>
+      </div>
     </SidebarLayout>
   );
 };
