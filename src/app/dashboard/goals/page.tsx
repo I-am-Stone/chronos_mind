@@ -14,6 +14,25 @@ import { DeleteGoal } from "@/api/goals/deleteGoals"
 import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
 import GoalsBarChart from "./_partials/GoalAnalytics";
+import {GetGoalStats} from "@/api/goals/getGoalStats";
+
+interface BackendStats {
+  labels: string[];
+  goal_progress: number[];
+  difficulty: string[];
+  goal_type: string[];
+}
+
+interface Goal {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  targetDate: string;
+  progress: number;
+  difficulty: string;
+  goal_type: string;
+}
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<backendGoal[]>([]);
@@ -25,6 +44,7 @@ export default function GoalsPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'title'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [chartData, setChartData] = useState<BackendStats[]>([]);
 
 
   useEffect(() => {
@@ -55,6 +75,27 @@ export default function GoalsPage() {
       console.log(result);
     });
   }, [refreshTrigger]);
+
+  useEffect(() => {
+    const fetchGoalStats = async () => {
+      try {
+        const response = await GetGoalStats();
+        console.log("API Response:", response.data);
+        if (response.success && response.data) {
+          // The API returns an array, but we need the first item
+          setChartData(Array.isArray(response.data) ? response.data[0] : response.data);
+        } else {
+          console.error("Failed to fetch Goal Stats:", response.message || "Unknown error");
+        }
+      } catch (error) {
+        console.error("Error fetching Goal Stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGoalStats();
+  }, []);
 
   const filteredGoals = useMemo(() => {
     return goals
@@ -185,7 +226,7 @@ export default function GoalsPage() {
                       <GoalStreak/>
                       </div>
                       <div className="p-25">
-                        <GoalsBarChart/>
+                        {chartData && <GoalsBarChart chartData={chartData} />}
                       </div>
                     </div>
                   </TabsContent>
