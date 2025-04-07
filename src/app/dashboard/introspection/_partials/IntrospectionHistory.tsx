@@ -25,7 +25,8 @@ const IntrospectionHistory: React.FC<IntrospectionHistoryProps> = ({
   getScoreColor
 }) => {
   return (
-    <TabsContent value="history" className="mt-0">
+    <TabsContent value= "history">
+    <div>
       <div className="bg-blue-50 p-6 rounded-xl shadow-sm mb-6 border border-blue-100">
         <h3 className="text-xl font-semibold text-blue-800 mb-3 flex items-center">
           <Calendar className="mr-3 text-amber-500" size={20} />
@@ -81,6 +82,7 @@ const IntrospectionHistory: React.FC<IntrospectionHistoryProps> = ({
           </Button>
         </div>
       </div>
+    </div>
     </TabsContent>
   );
 };

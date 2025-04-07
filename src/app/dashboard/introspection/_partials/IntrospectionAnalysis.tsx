@@ -25,7 +25,8 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
   currentAnalysis
 }) => {
   return (
-    <TabsContent value="analysis" className="mt-0">
+    <TabsContent value= "analysis">
+    <div>
       <Alert className="bg-blue-50 border-blue-200 mb-6 p-4 rounded-xl">
         <Bot className="h-6 w-6 text-blue-600" />
         <AlertTitle className="text-blue-800 text-lg">AI Analysis Active</AlertTitle>
@@ -112,6 +113,7 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
           </Button>
         </CardFooter>
       </Card>
+    </div>
     </TabsContent>
   );
 };

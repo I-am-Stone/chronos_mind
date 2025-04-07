@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { Tabs } from '@/components/ui/tabs';
 import SidebarLayout from '@/components/shared/sidebar/layout';
-import IntrospectionHeader from './_partials/IntrospectionHeader';
 import IntrospectionTabs from './_partials/IntrospectionTabs';
 import IntrospectionSession from './_partials/IntrospectionSession';
 import IntrospectionHistory from './_partials/IntrospectionHistory';
 import IntrospectionAnalysis from './_partials/IntrospectionAnalysis';
-import IntrospectionLineChart from './_partials/IntrospectionLineChart';
-// Import the TabValue type from IntrospectionTabs
+import {motion} from 'framer-motion';
+import IntrospectionWeeklyMetricsChart from './_partials/IntrospectionLineChart';
+
 type TabValue = 'session' | 'history' | 'analysis' | 'charts';
 
 interface CognitiveMetrics {
@@ -163,10 +163,26 @@ const IntrospectionSection = () => {
   
   return (
     <SidebarLayout>
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center"
+          >
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Mind Lab
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">
+              Build lasting habits with proven strategies
+            </p>
+          </motion.div>
+        </div>
+      </div>
       <div className="p-6 md:p-8 max-w-5xl mx-auto">
         <div className="bg-white text-black rounded-xl shadow-lg overflow-hidden border border-gray-200">
           <Tabs defaultValue="session" className="w-full">
-            <IntrospectionHeader level={3} />
             <div className="px-6 pb-4">
               <IntrospectionTabs activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
@@ -192,7 +208,7 @@ const IntrospectionSection = () => {
               <IntrospectionAnalysis 
                 currentAnalysis={currentAnalysis}
               />
-              <IntrospectionLineChart />
+              <IntrospectionWeeklyMetricsChart/>
             </div>
           </Tabs>
         </div>

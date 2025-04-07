@@ -14,8 +14,7 @@ import { DeleteGoal } from "@/api/goals/deleteGoals"
 import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
 import { GoalProfileData } from "@/helper/goalhelper/goalStreak";
-
-
+import GoalsBarChart from "./_partials/GoalAnalytics";
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<backendGoal[]>([]);
@@ -184,8 +183,12 @@ export default function GoalsPage() {
                   </div>
                   <TabsContent value="dashboard">
                     <div className="p-4">
+                      <div>
                       {profileData?.streak && <GoalStreak streak={profileData.streak} />}
-                      {/* <CharacterSprite /> */}
+                      </div>
+                      <div className="p-25">
+                        <GoalsBarChart/>
+                      </div>
                     </div>
                   </TabsContent>
                   <TabsContent value="goals">
