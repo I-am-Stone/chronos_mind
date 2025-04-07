@@ -4,11 +4,15 @@ export const API_CONFIG = {
         LOGIN: '/api/auth/login/',
         REGISTER: '/api/auth/register/',
 
+        //Goals
         POST_GOAL: '/api/goals/',
         GET_GOALS: '/api/goals/get-goals',
         UPDATE_PROGRESS: '/api/goals/progress/{goal_id}/',
         DELETE_GOAL: '/api/goals/delete/{goal_id}/',
         GOAL_STATS: '/api/goals/goal-stats',
-        GOAL_PROFILE:'/api/goals/get-goal-profile'
+        GOAL_PROFILE:'/api/goals/get-goal-profile',
+
+        //habits
+        POST_HABITS: '/api/habits/',
     }
 };

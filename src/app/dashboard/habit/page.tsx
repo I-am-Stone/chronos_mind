@@ -5,7 +5,7 @@ import { Toaster } from 'sonner';
 import SidebarLayout from '@/components/shared/sidebar/layout';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { NotionStyleTodoList } from './_partials/HabitFrom';
+import { HabitTracker } from './_partials/HabitFrom';
 
 const HabitsPage: React.FC = () => {
   
@@ -56,7 +56,7 @@ const HabitsPage: React.FC = () => {
               transition={{ delay: 0.2 }}
               className="max-w-md mx-auto"
             >
-              <NotionStyleTodoList />
+              <HabitTracker />
             </motion.div>
             </div>
           </TabsContent>

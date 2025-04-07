@@ -5,6 +5,7 @@ export interface ApiResponse<T> {
     data?: T;
     error?: string;
 }
+
 const getAuthToken = (): string | null => localStorage.getItem("authToken");
 
 const apiLayer = {
@@ -18,6 +19,13 @@ const apiLayer = {
         try {
             const url = `${API_CONFIG.BASE_URL}${endpoint}`;
 
+            if (authRequired) {
+                const token = getAuthToken();
+                if (!token) {
+                    return { success: false, error: "Authentication required but no token found." };
+                }
+            }
+
             const options: RequestInit = {
                 method,
                 headers: {
@@ -27,10 +35,7 @@ const apiLayer = {
             };
 
             if (authRequired) {
-                const token:string | null = getAuthToken();
-                if (!token) {
-                    throw new Error("Authentication required but no token found.");
-                }
+                const token = getAuthToken();
                 options.headers = {
                     ...options.headers,
                     Authorization: `Token ${token}`,
@@ -43,7 +48,7 @@ const apiLayer = {
 
             const response = await fetch(url, options);
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                console.error(`HTTP error! Status: ${response.status}`);
             }
 
             const result: T = await response.json();
@@ -53,7 +58,6 @@ const apiLayer = {
             return { success: false, error: error.message };
         }
     },
-
 };
 
 export default apiLayer;

@@ -16,12 +16,7 @@ import { motion } from 'framer-motion';
 import GoalsBarChart from "./_partials/GoalAnalytics";
 import {GetGoalStats} from "@/api/goals/getGoalStats";
 
-interface BackendStats {
-  labels: string[];
-  goal_progress: number[];
-  difficulty: string[];
-  goal_type: string[];
-}
+
 
 interface Goal {
   id: number;
@@ -44,7 +39,7 @@ export default function GoalsPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'title'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [chartData, setChartData] = useState<BackendStats[]>([]);
+  const [chartData, setChartData] = useState(null);
 
 
   useEffect(() => {
@@ -85,7 +80,7 @@ export default function GoalsPage() {
           // The API returns an array, but we need the first item
           setChartData(Array.isArray(response.data) ? response.data[0] : response.data);
         } else {
-          console.error("Failed to fetch Goal Stats:", response.message || "Unknown error");
+          console.error("Failed to fetch Goal Stats:", response.error || "Unknown error");
         }
       } catch (error) {
         console.error("Error fetching Goal Stats:", error);
@@ -94,7 +89,9 @@ export default function GoalsPage() {
       }
     };
 
-    fetchGoalStats();
+    fetchGoalStats().then(r => {
+      console.log(r);
+    });
   }, []);
 
   const filteredGoals = useMemo(() => {
