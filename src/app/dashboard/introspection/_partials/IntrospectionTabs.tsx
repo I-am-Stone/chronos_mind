@@ -16,7 +16,9 @@ const IntrospectionTabs: React.FC<IntrospectionTabsProps> = ({ activeTab, onTabC
       <TabsTrigger 
         value="session" 
         className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md"
-        onClick={() => onTabChange('session')}
+        onClick={() => onTabChange('session')
+
+      }
       >
         <Brain className="mr-2 h-4 w-4" /> New Session
       </TabsTrigger>

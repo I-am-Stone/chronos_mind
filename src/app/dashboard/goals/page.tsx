@@ -13,7 +13,6 @@ import GoalRules from "./_partials/GoalRule"
 import { DeleteGoal } from "@/api/goals/deleteGoals"
 import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
-import { GoalProfileData } from "@/helper/goalhelper/goalStreak";
 import GoalsBarChart from "./_partials/GoalAnalytics";
 
 export default function GoalsPage() {
@@ -27,7 +26,6 @@ export default function GoalsPage() {
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'title'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  const profileData = GoalProfileData();
 
   useEffect(() => {
     const fetchGoals = async () => {
@@ -184,7 +182,7 @@ export default function GoalsPage() {
                   <TabsContent value="dashboard">
                     <div className="p-4">
                       <div>
-                      {profileData?.streak && <GoalStreak streak={profileData.streak} />}
+                      <GoalStreak/>
                       </div>
                       <div className="p-25">
                         <GoalsBarChart/>

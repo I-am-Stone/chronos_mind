@@ -1,4 +1,5 @@
 'use Client';
+import React from "react";
 import {Input} from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ interface GoalFiltersProps {
     setSearchTerm: (term: string) => void;
     filterStatus: string;
     setFilterStatus: (status: string) => void;
-    sortBy: 'date' | 'progress' | 'title';
+    sortBy: 'date' | 'progress' | 'title'| 'status';
     setSortBy: (sort: 'date' | 'progress' | 'title') => void;
     sortOrder: 'asc' | 'desc';
     setSortOrder: (order: 'asc' | 'desc') => void;

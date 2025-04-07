@@ -2,21 +2,57 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Flame, Calendar, Trophy, Star } from "lucide-react";
-import { StreakData } from "@/helper/goalhelper/goalStreak";
+import { useEffect, useState } from "react";
+import { GetGoalProfile } from '@/api/goals/goalProfileData';
 
-interface GoalStreakProps {
-  streak: StreakData;
+interface StreakData {
+  user: number;
+  current_streak: number;
+  points: number;
+  last_progress_date: string;
+  longest_streak: number;
+  total_goals_completed: number;
+  total_goals: number;
 }
 
-export default function GoalStreak({ streak }: GoalStreakProps) {
+export default function GoalStreak() {
+  const [streak, setStreak] = useState<StreakData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStreak = async () => {
+      try {
+        const response = await GetGoalProfile();
+
+        if (response.success && response.data) {
+          console.log("API Response:", response.data);
+          // The API returns an array, but we need the first item
+          setStreak(Array.isArray(response.data) ? response.data[0] : response.data);
+        } else {
+          console.error("Failed to fetch Streak");
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching goals:", err);
+        setLoading(false);
+      }
+    };
+
+    fetchStreak();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center p-4">Loading streak data...</div>;
+  }
+
   if (!streak) {
-    return <div>Loading streak data...</div>;
+    return <div className="text-center p-4">No streak data available.</div>;
   }
 
   const data = [
     {
       title: "Current Streak",
-      value: streak.current_streak, // Fixed property name
+      value: streak.current_streak,
       icon: Flame,
       color: "text-orange-500",
       bgColor: "bg-orange-100 dark:bg-orange-900/30",
@@ -93,7 +129,7 @@ export default function GoalStreak({ streak }: GoalStreakProps) {
                       <div className="text-gray-600 dark:text-gray-300">Next milestone:</div>
                       <div className="flex items-center">
                         <Star className="h-3 w-3 text-yellow-500 mr-1" />
-                        <span className="font-bold">15 days</span>
+                        <span className="font-bold">{streak.current_streak < 7 ? 7 : streak.current_streak < 30 ? 30 : 100}</span>
                       </div>
                     </>
                 )}
@@ -102,7 +138,9 @@ export default function GoalStreak({ streak }: GoalStreakProps) {
                     <>
                       <div className="text-gray-600 dark:text-gray-300">Status:</div>
                       <div className="flex items-center">
-                        <span className="font-bold text-green-500">Active</span>
+                  <span className={`font-bold ${new Date(streak.last_progress_date) >= new Date(Date.now() - 86400000) ? "text-green-500" : "text-yellow-500"}`}>
+                    {new Date(streak.last_progress_date) >= new Date(Date.now() - 86400000) ? "Active" : "Inactive"}
+                  </span>
                       </div>
                     </>
                 )}
@@ -111,7 +149,30 @@ export default function GoalStreak({ streak }: GoalStreakProps) {
                     <>
                       <div className="text-gray-600 dark:text-gray-300">Achievement:</div>
                       <div className="flex items-center">
-                        <span className="font-bold text-purple-500">Novice</span>
+                  <span className="font-bold text-purple-500">
+                    {streak.longest_streak >= 30 ? "Pro" : streak.longest_streak >= 7 ? "Regular" : "Beginner"}
+                  </span>
+                      </div>
+                    </>
+                )}
+
+                {item.title === "Completed Goals" && (
+                    <>
+                      <div className="text-gray-600 dark:text-gray-300">Completion rate:</div>
+                      <div className="flex items-center">
+                  <span className="font-bold text-green-500">
+                    {streak.total_goals > 0 ? Math.round((streak.total_goals_completed / streak.total_goals) * 100) : 0}%
+                  </span>
+                      </div>
+                    </>
+                )}
+
+                {item.title === "Total Goals" && (
+                    <>
+                      <div className="text-gray-600 dark:text-gray-300">Points:</div>
+                      <div className="flex items-center">
+                        <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                        <span className="font-bold">{streak.points}</span>
                       </div>
                     </>
                 )}

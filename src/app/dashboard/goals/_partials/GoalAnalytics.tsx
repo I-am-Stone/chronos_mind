@@ -74,7 +74,7 @@ export default function GoalsBarChart() {
       },
       tooltip: {
         callbacks: {
-          afterLabel: function(context) {
+          afterLabel: function(context:any) {
             const goal = goalsData[context.dataIndex];
             return `Difficulty: ${goal.difficulty}\nType: ${goal.type}`;
           }
