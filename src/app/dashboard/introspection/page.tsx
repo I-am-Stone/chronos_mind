@@ -7,9 +7,9 @@ import IntrospectionTabs from './_partials/IntrospectionTabs';
 import IntrospectionSession from './_partials/IntrospectionSession';
 import IntrospectionHistory from './_partials/IntrospectionHistory';
 import IntrospectionAnalysis from './_partials/IntrospectionAnalysis';
-
+import IntrospectionLineChart from './_partials/IntrospectionLineChart';
 // Import the TabValue type from IntrospectionTabs
-type TabValue = 'session' | 'history' | 'analysis';
+type TabValue = 'session' | 'history' | 'analysis' | 'charts';
 
 interface CognitiveMetrics {
   working_memory: number;
@@ -192,6 +192,7 @@ const IntrospectionSection = () => {
               <IntrospectionAnalysis 
                 currentAnalysis={currentAnalysis}
               />
+              <IntrospectionLineChart />
             </div>
           </Tabs>
         </div>
