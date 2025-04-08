@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { postHabit } from "@/api/habit/postHabit";
 import { getHabit } from "@/api/habit/getHabit";
 import { deleteHabit } from "@/api/habit/deleteHabit";
-
+import {habitComplete} from "@/api/habit/habitComplete";
 // Type definitions
 type ResetOption = 'daily' | 'weekly' | 'monthly' | 'never';
 
@@ -243,18 +243,39 @@ export function HabitTracker() {
   };
 
   // Toggle habit completion status
-  const toggleHabitCompletion = (id: number) => {
-    setHabits(habits.map(habit => {
-      if (habit.id !== id) return habit;
+  const toggleHabitCompletion = async (id: number) => {
+    try {
+      // Get the habit we're updating
+      const habitToUpdate = habits.find(habit => habit.id === id);
+      if (!habitToUpdate) return;
 
-      const newCompletedState = !habit.completed;
-      return {
-        ...habit,
-        completed: newCompletedState,
-        completedAt: newCompletedState ? new Date() : null
-      };
-    }));
+      // Define the new completion state
+      const newCompletedState = !habitToUpdate.completed;
+
+      // If we're marking as completed, call the API
+      if (newCompletedState) {
+        const response = await habitComplete(id);
+        if (!response.success) {
+          console.error("Failed to update habit completion status:", response.error);
+          return;
+        }
+      }
+
+      // Update the local state
+      setHabits(habits.map(habit => {
+        if (habit.id !== id) return habit;
+
+        return {
+          ...habit,
+          completed: newCompletedState,
+          completedAt: newCompletedState ? new Date() : null
+        };
+      }));
+    } catch (error) {
+      console.error("Error updating habit completion status:", error);
+    }
   };
+
 
   // Update habit reset option
   const updateHabitResetOption = (id: number, option: ResetOption) => {

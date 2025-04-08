@@ -18,6 +18,6 @@ export const API_CONFIG = {
         GET_HABITS: '/api/habits/get-habits/',
         DELETE_HABIT: '/api/habits/delete/{id}/',
         UPDATE_HABIT: '/api/habits/update/{id}/',
-
+        UPDATE_COMPLETE:'/api/habits/update-completion/{id}/',
     }
 };

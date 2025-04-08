@@ -1,7 +1,7 @@
 import { API_CONFIG } from "@/config/api.config";
 
 export interface ApiResponse<T> {
-    message: string;
+    message?: string;
     success: boolean;
     data?: T;
     error?: string;
