@@ -19,5 +19,10 @@ export const API_CONFIG = {
         DELETE_HABIT: '/api/habits/delete/{id}/',
         UPDATE_HABIT: '/api/habits/update/{id}/',
         UPDATE_COMPLETE:'/api/habits/update-completion/{id}/',
+        HABIT_PROFILE:'/api/habits/get-habit-profile',
+
+        //introspection
+        POST_SESSION: '/api/introspection/',
+        GET_SESSION: '/api/introspection/session',
     }
 };

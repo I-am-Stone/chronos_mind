@@ -6,6 +6,7 @@ import SidebarLayout from '@/components/shared/sidebar/layout';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HabitTracker } from './_partials/HabitFrom';
+import HabitDash from "@/app/dashboard/habit/_partials/HabitDash";
 
 const HabitsPage: React.FC = () => {
   
@@ -45,6 +46,7 @@ const HabitsPage: React.FC = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
+              <HabitDash />
             </motion.div>
           </TabsContent>
 

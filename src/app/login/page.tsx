@@ -35,10 +35,13 @@ const LoginPage = () => {
             if (response.success) {
                 toast.success('Login successful');
                 router.push('/dashboard/goals');
+            }else {
+                toast.error('Invalid credentials');
             }
         } catch (error) {
             console.error('Login error', error);
             setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+            toast.error('Invalid credentials');
         } finally {
             setIsSubmitting(false);
         }

@@ -1,4 +1,4 @@
-import apiLayer from "../apiLayer"
+import apiLayer from "@/api/apiLayer";
 import { API_CONFIG } from "@/config/api.config";
 import { backendGoal } from "@/app/dashboard/goals/_partials/goalType";
 
