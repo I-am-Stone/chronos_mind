@@ -14,5 +14,6 @@ export const API_CONFIG = {
 
         //habits
         POST_HABITS: '/api/habits/',
+        GET_HABITS: '/api/habits/get-habits/',
     }
 };

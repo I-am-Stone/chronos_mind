@@ -33,7 +33,7 @@ const HabitsPage: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <Tabs defaultValue="habits" className="w-full">
+        <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="create">Create Habit</TabsTrigger>

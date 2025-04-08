@@ -22,7 +22,7 @@ type Habit = {
   completed: boolean;
   completedAt?: Date | null;
   resetTime?: string;
-  resetOption: ResetOption;
+  resetOption?: ResetOption;
 };
 
 export function HabitTracker() {
@@ -31,7 +31,9 @@ export function HabitTracker() {
   const [isAdding, setIsAdding] = useState(false);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [nextId, setNextId] = useState(1);
-  const [resetTime, setResetTime] = useState('09:00');
+  const [showResetSettings, setShowResetSettings] = useState(false);
+  const [resetTime, setResetTime] = useState('');  // Changed from '09:00' to empty string
+  const [resetOption, setResetOption] = useState<ResetOption>('daily');
 
   useEffect(() => {
     const checkResetHabits = () => {
@@ -42,7 +44,7 @@ export function HabitTracker() {
 
       setHabits(prevHabits =>
           prevHabits.map(habit => {
-            if (!habit.completed || !habit.completedAt || habit.resetOption === 'never') {
+            if (!habit.completed || !habit.completedAt || !habit.resetOption || habit.resetOption === 'never') {
               return habit;
             }
 
@@ -87,9 +89,15 @@ export function HabitTracker() {
         name: habitName,
         description: habitDescription,
         completed: false,
-        resetTime: resetTime,
-        resetOption: 'daily'
       };
+
+      if (showResetSettings) {
+        newHabit.resetOption = resetOption;
+        if (resetOption !== 'never') {
+          // Use default time if user didn't input any
+          newHabit.resetTime = resetTime || '09:00';
+        }
+      }
 
       try {
         const response = await PostHabit({
@@ -103,6 +111,8 @@ export function HabitTracker() {
           setHabitName('');
           setHabitDescription('');
           setIsAdding(false);
+          setShowResetSettings(false);
+          setResetTime('');  // Reset the time input after adding
         } else {
           console.error("Failed to create habit:", response.error);
         }
@@ -123,6 +133,8 @@ export function HabitTracker() {
       setIsAdding(false);
       setHabitName('');
       setHabitDescription('');
+      setShowResetSettings(false);
+      setResetTime('');  // Reset the time input when canceling
     }
   };
 
@@ -212,7 +224,7 @@ export function HabitTracker() {
                               <div className="space-y-2">
                                 <Label className="text-xs">Reset schedule</Label>
                                 <Select
-                                    value={habit.resetOption}
+                                    value={habit.resetOption || 'never'}
                                     onValueChange={(value: ResetOption) => updateResetOption(habit.id, value)}
                                 >
                                   <SelectTrigger className="h-8">
@@ -226,14 +238,15 @@ export function HabitTracker() {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              {habit.resetOption !== 'never' && (
+                              {habit.resetOption && habit.resetOption !== 'never' && (
                                   <div className="space-y-2">
                                     <Label className="text-xs">Reset time</Label>
                                     <Input
                                         type="time"
-                                        value={habit.resetTime || '09:00'}
+                                        value={habit.resetTime || ''}
                                         onChange={(e) => updateResetTime(habit.id, e.target.value)}
                                         className="h-8"
+                                        placeholder="Select time"
                                     />
                                   </div>
                               )}
@@ -283,15 +296,57 @@ export function HabitTracker() {
                         onChange={(e) => setHabitDescription(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">Daily reset time</Label>
-                    <Input
-                        type="time"
-                        value={resetTime}
-                        onChange={(e) => setResetTime(e.target.value)}
-                        className="h-8"
-                    />
-                  </div>
+
+                  {!showResetSettings ? (
+                      <button
+                          type="button"
+                          onClick={() => setShowResetSettings(true)}
+                          className="text-xs text-blue-500 hover:text-blue-700 flex items-center"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add reset schedule
+                      </button>
+                  ) : (
+                      <div className="space-y-3 border-t pt-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs">Reset schedule</Label>
+                          <Select
+                              value={resetOption}
+                              onValueChange={(value: ResetOption) => setResetOption(value)}
+                          >
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Select reset option" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="daily">Daily</SelectItem>
+                              <SelectItem value="weekly">Weekly</SelectItem>
+                              <SelectItem value="monthly">Monthly</SelectItem>
+                              <SelectItem value="never">Never</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {resetOption !== 'never' && (
+                            <div className="space-y-2">
+                              <Label className="text-xs">Reset time</Label>
+                              <Input
+                                  type="time"
+                                  value={resetTime}
+                                  onChange={(e) => setResetTime(e.target.value)}
+                                  className="h-8"
+                                  placeholder="Select time"
+                              />
+                            </div>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setShowResetSettings(false)}
+                            className="text-xs text-red-500 hover:text-red-700"
+                        >
+                          Remove reset schedule
+                        </button>
+                      </div>
+                  )}
+
                   <div className="flex justify-end gap-2 mt-2">
                     <Button
                         type="button"
@@ -301,6 +356,8 @@ export function HabitTracker() {
                           setIsAdding(false);
                           setHabitName('');
                           setHabitDescription('');
+                          setShowResetSettings(false);
+                          setResetTime('');  // Reset the time input when canceling
                         }}
                         className="text-gray-500 hover:text-gray-700 h-8"
                     >
