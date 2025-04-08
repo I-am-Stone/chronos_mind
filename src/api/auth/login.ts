@@ -6,12 +6,25 @@ interface User {
     password: string;
 }
 
-export const login = async (User: User) => {
-    const response = await apiLayer.request(
+interface LoginResponse {
+    token: string;
+    user: {
+        id: string;
+        email: string;
+        // other user properties
+    };
+}
+
+export const login = async (user: User) => {
+    const response = await apiLayer.post<LoginResponse>(
         API_CONFIG.ENDPOINTS.LOGIN,
-        "POST",
-        User,
+        user,
         false
     );
+
+    if (response.success && response.data?.token) {
+        localStorage.setItem("authToken", response.data.token);
+    }
+
     return response;
 };

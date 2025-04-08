@@ -3,11 +3,11 @@ import { API_CONFIG } from "@/config/api.config";
 
 
 export const GetGoalProfile = async () => {
-    const response = await apiLayer.request(
+    const response = await apiLayer.get(
         API_CONFIG.ENDPOINTS.GOAL_PROFILE,
-        "GET",
-        null,
-        true
+        true,
+        {}
+
     );
     return response;
 }

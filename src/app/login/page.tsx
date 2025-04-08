@@ -33,14 +33,9 @@ const LoginPage = () => {
             const response = await login({ email, password });
             console.log('Login successful', response);
             if (response.success) {
-                // @ts-ignore
-                const token = response.data?.token;
-                localStorage.setItem('authToken', token);
                 toast.success('Login successful');
-
                 router.push('/dashboard/goals');
             }
-            // Handle successful login (e.g., redirect, store token)
         } catch (error) {
             console.error('Login error', error);
             setError(error instanceof Error ? error.message : 'An unexpected error occurred');

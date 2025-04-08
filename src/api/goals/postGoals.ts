@@ -11,11 +11,10 @@ interface GoalData {
 
 
 export const PostGoal = async (goal: GoalData) => {
-    const response = await apiLayer.request(
+    const response = await apiLayer.post(
         API_CONFIG.ENDPOINTS.POST_GOAL,
-        "POST",
         goal,
-        true
+        true,
     );
     return response;
 };

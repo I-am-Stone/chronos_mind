@@ -4,13 +4,13 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import GoalForm from "./_partials/GoalForm"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import GoalCard from "./_partials/GoalCard"
-import { GetGoals } from "@/api/goals/getGoals"
+import { getGoals } from "@/api/goals/getGoals"
 import { useState, useEffect, useMemo } from 'react';
 import { backendGoal } from "./_partials/goalType"
 import { GoalFilters } from "./_partials/GoalFilter"
 import GoalStreak from "./_partials/GoalStreak";
 import GoalRules from "./_partials/GoalRule"
-import { DeleteGoal } from "@/api/goals/deleteGoals"
+import { deleteGoal } from "@/api/goals/deleteGoals"
 import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
 import GoalsBarChart from "./_partials/GoalAnalytics";
@@ -46,7 +46,7 @@ export default function GoalsPage() {
     const fetchGoals = async () => {
       try {
         setLoading(true);
-        const response = await GetGoals();
+        const response = await getGoals();
         console.log("API Response:", response.data);
 
         if (response.success && response.data) {
@@ -129,7 +129,7 @@ export default function GoalsPage() {
   const handleDelete = async (id: number) => {
     console.log('Deleting goal with id:', id);
     try {
-      const response = await DeleteGoal(id);
+      const response = await deleteGoal(id);
       if (response.success) {
         setGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
       } else {

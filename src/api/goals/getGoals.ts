@@ -1,12 +1,12 @@
 import apiLayer from "../apiLayer"
 import { API_CONFIG } from "@/config/api.config";
+import { backendGoal } from "@/app/dashboard/goals/_partials/goalType";
 
-export const GetGoals = async () => {
-    const response = await apiLayer.request(
+export const getGoals = async () => {
+    const response = await apiLayer.get<backendGoal[]>(
         API_CONFIG.ENDPOINTS.GET_GOALS,
-        "GET",
-        null,
-        true
+        true, // Authentication required
+        {} // Optional headers (empty object if not needed)
     );
     return response;
 }

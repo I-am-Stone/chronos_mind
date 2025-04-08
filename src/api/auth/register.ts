@@ -9,11 +9,10 @@ interface User {
 }
 export const register = async (User: User) => {
 
-    const response = await apiLayer.request(
+    const response = await apiLayer.post(
         API_CONFIG.ENDPOINTS.REGISTER,
-        "POST",
         User,
-        false
+        false,
     );
     return response;
 };

@@ -1,12 +1,18 @@
 import { API_CONFIG } from "@/config/api.config";
 import apiLayer from "../apiLayer";
 
-export const DeleteGoal = async (goal_id: number) => {
-    const response = await apiLayer.request(
-        API_CONFIG.ENDPOINTS.DELETE_GOAL.replace('{goal_id}', goal_id.toString()),
-        "DELETE",
-        null,
+interface DeleteGoalResponse {
+    success: boolean;
+    message?: string;
+}
+
+export const deleteGoal = async (goalId: number) => {
+    const endpoint = API_CONFIG.ENDPOINTS.DELETE_GOAL.replace('{goal_id}', goalId.toString());
+
+    const response = await apiLayer.delete<DeleteGoalResponse>(
+        endpoint,
         true
     );
+
     return response;
 };
