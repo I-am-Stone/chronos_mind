@@ -1,7 +1,7 @@
 import {API_CONFIG} from "@/config/api.config";
 import ApiLayer from "@/api/apiLayer";
 
-export const PostHabit = async (habit: any) => {
+export const postHabit = async (habit: any) => {
     const response = await ApiLayer.request(
         API_CONFIG.ENDPOINTS.POST_HABITS,
         "POST",

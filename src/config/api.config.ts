@@ -11,9 +11,13 @@ export const API_CONFIG = {
         DELETE_GOAL: '/api/goals/delete/{goal_id}/',
         GOAL_STATS: '/api/goals/goal-stats',
         GOAL_PROFILE:'/api/goals/get-goal-profile',
+        UPDATE_GOAL: '/api/goals/update/{goal_id}/',
 
         //habits
         POST_HABITS: '/api/habits/',
         GET_HABITS: '/api/habits/get-habits/',
+        DELETE_HABIT: '/api/habits/delete/{id}/',
+        UPDATE_HABIT: '/api/habits/update/{id}/',
+
     }
 };

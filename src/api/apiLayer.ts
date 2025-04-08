@@ -1,6 +1,7 @@
 import { API_CONFIG } from "@/config/api.config";
 
 export interface ApiResponse<T> {
+    message: string;
     success: boolean;
     data?: T;
     error?: string;
@@ -88,7 +89,28 @@ const apiLayer = {
                     };
                 }
             }
-            const result = await response.json();
+
+            // Check for empty response
+            const contentType = response.headers.get("content-type");
+            let result;
+
+            if (response.status === 204 || !response.body || response.headers.get("content-length") === "0") {
+                // No content response
+                result = null;
+            } else if (contentType && contentType.includes("application/json")) {
+                // JSON response
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    console.warn("Response claimed to be JSON but parsing failed:", e);
+                    const text = await response.text();
+                    result = text.length > 0 ? text : null;
+                }
+            } else {
+                // Non-JSON response (text, etc.)
+                result = await response.text();
+            }
+
             return {
                 success: true,
                 data: result as T,
