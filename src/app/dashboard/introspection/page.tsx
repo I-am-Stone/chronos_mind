@@ -60,25 +60,28 @@ interface HistorySession {
 }
 
 interface AIAnalysisResponse {
-  ai_analysis: {
-    overall: string;
-    emotional_state_evaluation: string;
-    cognitive_functioning_evaluation: string;
-    Strengths: {
-      [key: string]: string;
+  success: boolean;
+  data: {
+    ai_analysis: {
+      overall: string;
+      emotional_state_evaluation: string;
+      cognitive_functioning_evaluation: string;
+      Strengths: {
+        [key: string]: string;
+      };
+      areas_for_improvement: {
+        [key: string]: string;
+      };
+      Recommendations: {
+        [key: string]: string;
+      };
+      factors_influence: {
+        [key: string]: string;
+      };
+      conclusion: string;
     };
-    areas_for_improvement: {
-      [key: string]: string;
-    };
-    Recommendations: {
-      [key: string]: string;
-    };
-    factors_influence: {
-      [key: string]: string;
-    };
-    conclusion: string;
   };
-  created_at: string;
+  statusCode: number;
 }
 
 const calculateCognitiveAvg = (session: HistorySession): number => {
@@ -190,14 +193,14 @@ const IntrospectionSection = () => {
       }
 
       // Check if the response has the expected data structure
-      if (!response.data || !response.data.ai_analysis) {
+      if (!response.data) {
         console.error("Response missing data or ai_analysis field:", response);
         setAnalysisError("Failed to load analysis: Invalid data format");
         return;
       }
 
       console.log("Setting analysis state with:", response);
-      setAnalysis(response);
+      setAnalysis(response as AIAnalysisResponse);
     } catch (error) {
       console.error("Exception occurred during analysis fetch:", error);
       setAnalysisError(`Failed to load analysis: ${error instanceof Error ? error.message : "Unknown error"}`);
