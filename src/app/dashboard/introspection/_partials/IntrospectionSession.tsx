@@ -57,6 +57,7 @@ interface IntrospectionSessionProps {
   emotionalAvg: number;
   estimatedPoints: number;
   getScoreColor: (score: number) => string;
+  onSubmitSuccess?: () => void;
 }
 
 // Create initial empty state
@@ -85,7 +86,8 @@ const IntrospectionSession: React.FC<IntrospectionSessionProps> = ({
                                                                      cognitiveAvg,
                                                                      emotionalAvg,
                                                                      estimatedPoints,
-                                                                     getScoreColor
+                                                                     getScoreColor,
+                                                                     onSubmitSuccess
                                                                    }) => {
   const [formData, setFormData] = useState<SessionData>(createEmptySessionData());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -150,6 +152,11 @@ const IntrospectionSession: React.FC<IntrospectionSessionProps> = ({
 
       // Reset form after successful submission
       setFormData(createEmptySessionData());
+
+      // Call onSubmitSuccess if provided
+      if (onSubmitSuccess) {
+        onSubmitSuccess();
+      }
 
       // Reset success message after 3 seconds
       setTimeout(() => setSubmitSuccess(false), 3000);

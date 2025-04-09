@@ -10,6 +10,7 @@ import IntrospectionAnalysis from './_partials/IntrospectionAnalysis';
 import { motion } from 'framer-motion';
 import IntrospectionWeeklyMetricsChart from './_partials/IntrospectionLineChart';
 import { getSessions } from "@/api/introspection/getSession";
+import { getAiAnalysis } from "@/api/introspection/getAiAnalysis";
 
 type TabValue = 'session' | 'history' | 'analysis' | 'charts';
 
@@ -58,14 +59,25 @@ interface HistorySession {
   emotional_avg?: number;
 }
 
-interface AIAnalysis {
-  overall_response: string;
-  emotional_evaluation: string;
-  cognitive_evaluation: string;
-  strengths: string[];
-  areas_for_improvement: string[];
-  recommendations: string[];
-  conclusion: string;
+interface AIAnalysisResponse {
+  ai_analysis: {
+    overall: string;
+    emotional_state_evaluation: string;
+    cognitive_functioning_evaluation: string;
+    Strengths: {
+      [key: string]: string;
+    };
+    areas_for_improvement: {
+      [key: string]: string;
+    };
+    Recommendations: {
+      [key: string]: string;
+    };
+    factors_influence: {
+      [key: string]: string;
+    };
+    conclusion: string;
+  };
   created_at: string;
 }
 
@@ -83,6 +95,11 @@ const IntrospectionSection = () => {
   const [history, setHistory] = useState<HistorySession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [analysis, setAnalysis] = useState<AIAnalysisResponse | null>(null);
+  const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabValue>('session');
 
   const [sessionData, setSessionData] = useState<SessionData>({
     cognitiveMetrics: {
@@ -127,21 +144,66 @@ const IntrospectionSection = () => {
     };
 
     fetchSessions();
-  }, []);
+  }, [refreshTrigger]);
 
-  const currentAnalysis: AIAnalysis = {
-    overall_response: "Your introspection indicates moderate cognitive performance with good emotional regulation. Your cognitive flexibility score stands out as a strength.",
-    emotional_evaluation: "Your emotional state shows good regulation despite moderate arousal, suggesting you're managing stress effectively. Your emotional valence indicates a generally positive mood.",
-    cognitive_evaluation: "Cognitive metrics show solid flexibility with room for improvement in attentional control. Working memory is at average levels.",
-    strengths: ["Cognitive flexibility", "Emotional regulation", "Self-awareness"],
-    areas_for_improvement: ["Attentional control", "Working memory", "Emotional arousal management"],
-    recommendations: [
-      "Try focused breathing exercises before complex tasks",
-      "Practice mindfulness for 10 minutes daily",
-      "Consider environment adjustments to reduce distractions"
-    ],
-    conclusion: "Overall, you're demonstrating good self-awareness and regulation. Focus on attention training to improve cognitive performance further.",
-    created_at: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  // When tab changes to analysis, prepare the analysis section but don't fetch yet
+  useEffect(() => {
+    if (activeTab === 'analysis') {
+      // Reset error state when entering the analysis tab
+      setAnalysisError(null);
+    }
+  }, [activeTab]);
+
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const fetchCurrentAnalysis = async () => {
+    try {
+      setIsAnalysisLoading(true);
+      setAnalysisError(null);
+
+      // Clear previous analysis to ensure we're working with fresh data
+      setAnalysis(null);
+
+      console.log("Fetching analysis data...");
+      const response = await getAiAnalysis();
+      console.log("Raw API response:", JSON.stringify(response));
+
+      if (!response) {
+        console.error("Empty response received from API");
+        setAnalysisError("Failed to load analysis: No data received");
+        return;
+      }
+
+      if (response.error) {
+        console.error("Error in API response:", response.error);
+        setAnalysisError(`Failed to load analysis: ${response.error}`);
+        return;
+      }
+
+      // Check if the response has the expected structure with success property
+      if (!response.success) {
+        console.error("Response indicates unsuccessful operation:", response);
+        setAnalysisError("Failed to load analysis: API returned unsuccessful status");
+        return;
+      }
+
+      // Check if the response has the expected data structure
+      if (!response.data || !response.data.ai_analysis) {
+        console.error("Response missing data or ai_analysis field:", response);
+        setAnalysisError("Failed to load analysis: Invalid data format");
+        return;
+      }
+
+      console.log("Setting analysis state with:", response);
+      setAnalysis(response);
+    } catch (error) {
+      console.error("Exception occurred during analysis fetch:", error);
+      setAnalysisError(`Failed to load analysis: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsAnalysisLoading(false);
+    }
   };
 
   const cognitiveAvg = Object.values(sessionData.cognitiveMetrics).reduce((a, b) => a + b, 0) /
@@ -160,8 +222,6 @@ const IntrospectionSection = () => {
       (cognitiveAvg + emotionalAvg) * 3 +
       Math.min(sessionData.qualitativeData.observations.length, 200) / 10
   );
-
-  const [activeTab, setActiveTab] = useState<TabValue>('session');
 
   const refreshHistory = async () => {
     try {
@@ -216,6 +276,7 @@ const IntrospectionSection = () => {
                         emotionalAvg={emotionalAvg}
                         estimatedPoints={estimatedPoints}
                         getScoreColor={getScoreColor}
+                        onSubmitSuccess={handleRefresh}
                     />
                 )}
 
@@ -244,7 +305,10 @@ const IntrospectionSection = () => {
 
                 {activeTab === 'analysis' && (
                     <IntrospectionAnalysis
-                        currentAnalysis={currentAnalysis}
+                        currentAnalysis={analysis}
+                        isLoading={isAnalysisLoading}
+                        error={analysisError}
+                        onFetchAnalysis={fetchCurrentAnalysis}
                     />
                 )}
 
