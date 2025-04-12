@@ -1,12 +1,12 @@
 'use client';
-import React from 'react';
-import { Bot, CheckCircle, Lightbulb, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bot, CheckCircle, Lightbulb, RefreshCw, Clock, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
-// Updated API response interface to match the actual structure
 interface APIResponse {
   success: boolean;
   data: {
@@ -30,6 +30,17 @@ interface APIResponse {
     };
   };
   statusCode: number;
+  created_at?: string;
+  id?: string | number;
+  // Add fields that may be present in past analyses format
+  overall_response?: string;
+  emotional_evaluation?: string;
+  cognitive_evaluation?: string;
+  strengths?: any;
+  areas_for_improvement?: any;
+  recommendations?: any;
+  influencing_factors?: any;
+  conclusion?: string;
 }
 
 interface IntrospectionAnalysisProps {
@@ -37,41 +48,55 @@ interface IntrospectionAnalysisProps {
   isLoading: boolean;
   error: string | null;
   onFetchAnalysis: () => void;
+  pastAnalyses?: APIResponse[];
+  onFetchPastAnalyses?: () => Promise<void>;
 }
 
 const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
                                                                        currentAnalysis,
                                                                        isLoading,
                                                                        error,
-                                                                       onFetchAnalysis
+                                                                       onFetchAnalysis,
+                                                                       pastAnalyses = [],
+                                                                       onFetchPastAnalyses = async () => {}
                                                                      }) => {
-  // For debugging - remove this in production
-  console.log("Analysis component received:", currentAnalysis);
+  const [viewingPastAnalyses, setViewingPastAnalyses] = useState(false);
+  const [currentPastAnalysisIndex, setCurrentPastAnalysisIndex] = useState(0);
+  const [loadingPastAnalyses, setLoadingPastAnalyses] = useState(false);
+  const [pastAnalysesLoaded, setPastAnalysesLoaded] = useState(false);
+  const [formattedPastAnalyses, setFormattedPastAnalyses] = useState<APIResponse[]>([]);
 
-  // Helper function to convert object to array and filter out "N/A" values
+  // Convert object properties to array and filter out empty/NA values
   const objectToArray = (obj: { [key: string]: string } | undefined): string[] => {
     if (!obj) return [];
     return Object.values(obj)
-        .filter(val => val !== undefined && val !== '' && val !== 'N/A' && !val.includes('No further') && !val.includes('cannot be identified'));
+        .filter(val =>
+            val !== undefined &&
+            val !== '' &&
+            val !== 'N/A' &&
+            !val.includes('No further') &&
+            !val.includes('cannot be identified')
+        );
   };
 
-  // Safely get analysis data with fallbacks
-  const getAnalysisData = () => {
-    if (!currentAnalysis || !currentAnalysis.success || !currentAnalysis.data || !currentAnalysis.data.ai_analysis) {
+  // Safely extract analysis data with fallbacks
+  const getAnalysisData = (analysis: APIResponse | null) => {
+    if (!analysis || !analysis.success || !analysis.data || !analysis.data.ai_analysis) {
       return {
         overall: 'No overall assessment available',
         emotionalEvaluation: 'No emotional evaluation available',
         cognitiveEvaluation: 'No cognitive evaluation available',
-        strengths: [],
-        areasForImprovement: [],
-        recommendations: [],
-        factorsInfluence: [],
+        strengths: [] as string[],
+        areasForImprovement: [] as string[],
+        recommendations: [] as string[],
+        factorsInfluence: [] as string[],
         conclusion: 'No conclusion available',
-        createdAt: 'Unknown date'
+        createdAt: 'Unknown date',
+        id: null
       };
     }
 
-    const aiAnalysis = currentAnalysis.data.ai_analysis;
+    const aiAnalysis = analysis.data.ai_analysis;
 
     return {
       overall: aiAnalysis.overall || 'No overall assessment available',
@@ -82,11 +107,121 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
       recommendations: objectToArray(aiAnalysis.Recommendations),
       factorsInfluence: objectToArray(aiAnalysis.factors_influence),
       conclusion: aiAnalysis.conclusion || 'No conclusion available',
-      createdAt: new Date().toLocaleString() // Using current date since the API doesn't return created_at
+      createdAt: analysis.created_at || new Date().toLocaleString(),
+      id: analysis.id || null
     };
   };
 
-  const analysisData = getAnalysisData();
+  // Helper function to ensure object structure
+  const convertToObject = (data: any): { [key: string]: string } => {
+    if (typeof data === 'string') {
+      return { '1': data };
+    }
+    if (Array.isArray(data)) {
+      return data.reduce((acc, item, index) => {
+        acc[String(index + 1)] = item;
+        return acc;
+      }, {} as { [key: string]: string });
+    }
+    return data || {};
+  };
+
+  // Process and format past analyses when they change
+  useEffect(() => {
+    if (pastAnalyses && pastAnalyses.length > 0) {
+      // Format the past analyses to match expected structure
+      const formatted = pastAnalyses.map(item => {
+        if (item.data && item.data.ai_analysis) {
+          // Already in the correct format
+          return item;
+        } else {
+          // Convert from backend format to component format
+          return {
+            success: true,
+            data: {
+              ai_analysis: {
+                overall: item.overall_response || '',
+                emotional_state_evaluation: item.emotional_evaluation || '',
+                cognitive_functioning_evaluation: item.cognitive_evaluation || '',
+                Strengths: convertToObject(item.strengths || {}),
+                areas_for_improvement: convertToObject(item.areas_for_improvement || {}),
+                Recommendations: convertToObject(item.recommendations || {}),
+                factors_influence: convertToObject(item.influencing_factors || {}),
+                conclusion: item.conclusion || ''
+              }
+            },
+            statusCode: 200,
+            created_at: item.created_at || new Date().toLocaleString(),
+            id: item.id
+          };
+        }
+      });
+
+      setFormattedPastAnalyses(formatted);
+      console.log("Formatted past analyses:", formatted);
+    }
+  }, [pastAnalyses]);
+
+  // Handle fetching past analyses
+  const handleViewPastAnalyses = async () => {
+    try {
+      setLoadingPastAnalyses(true);
+
+      // Only fetch past analyses if we haven't already loaded them
+      if (!pastAnalysesLoaded) {
+        await onFetchPastAnalyses();
+      }
+
+      console.log("Past analyses available:", pastAnalyses.length);
+
+      if (formattedPastAnalyses.length > 0) {
+        setViewingPastAnalyses(true);
+        setCurrentPastAnalysisIndex(0);
+        setPastAnalysesLoaded(true);
+      } else {
+        console.log("No past analyses available");
+      }
+    } catch (err) {
+      console.error("Error fetching past analyses:", err);
+    } finally {
+      setLoadingPastAnalyses(false);
+    }
+  };
+
+  // Handle returning to current analysis
+  const handleReturnToCurrent = () => {
+    setViewingPastAnalyses(false);
+  };
+
+  // Navigation for past analyses
+  const handlePreviousAnalysis = () => {
+    if (currentPastAnalysisIndex > 0) {
+      setCurrentPastAnalysisIndex(currentPastAnalysisIndex - 1);
+    }
+  };
+
+  const handleNextAnalysis = () => {
+    if (currentPastAnalysisIndex < formattedPastAnalyses.length - 1) {
+      setCurrentPastAnalysisIndex(currentPastAnalysisIndex + 1);
+    }
+  };
+
+  // Determine which analysis to display
+  const displayedAnalysis = viewingPastAnalyses && formattedPastAnalyses.length > 0
+      ? formattedPastAnalyses[currentPastAnalysisIndex]
+      : currentAnalysis;
+
+  const analysisData = getAnalysisData(displayedAnalysis);
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    } catch (e) {
+      return dateString;
+    }
+  };
 
   return (
       <TabsContent value="analysis">
@@ -99,27 +234,70 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
             </AlertDescription>
           </Alert>
 
-          {(!currentAnalysis || !currentAnalysis.success) && !isLoading && !error && (
-              <div className="text-center py-12">
-                <p className="text-gray-600 mb-6">No analysis data available. Generate a new analysis to view insights.</p>
-                <Button
-                    onClick={onFetchAnalysis}
-                    className="bg-blue-600 hover:bg-blue-700 text-white py-5 px-8 text-base rounded-lg font-semibold transition-colors"
-                >
-                  Generate Analysis
-                </Button>
-              </div>
-          )}
+          {/* Primary Actions */}
+          <div className="flex flex-wrap gap-4 mb-6 justify-between">
+            <div className="flex flex-wrap gap-3">
+              <Button
+                  onClick={onFetchAnalysis}
+                  className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 text-base rounded-lg font-medium transition-colors flex items-center ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={isLoading}
+              >
+                {isLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                    <Lightbulb className="h-4 w-4 mr-2" />
+                )}
+                Generate Analysis
+              </Button>
 
+              <Button
+                  onClick={handleViewPastAnalyses}
+                  className={`bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 text-base rounded-lg font-medium transition-colors flex items-center ${loadingPastAnalyses ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={loadingPastAnalyses}
+              >
+                {loadingPastAnalyses ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                    <Calendar className="h-4 w-4 mr-2" />
+                )}
+                View Past Analyses ({pastAnalyses.length})
+              </Button>
+            </div>
+
+            {viewingPastAnalyses && formattedPastAnalyses.length > 0 && (
+                <div className="flex items-center">
+                  <Button
+                      onClick={handleReturnToCurrent}
+                      variant="outline"
+                      className="border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center"
+                  >
+                    <ChevronLeft size={16} className="mr-1" /> Return to Current
+                  </Button>
+                  <Badge className="ml-3 bg-blue-100 text-blue-800 hover:bg-blue-200">
+                    {currentPastAnalysisIndex + 1} of {formattedPastAnalyses.length}
+                  </Badge>
+                </div>
+            )}
+          </div>
+
+          {/* Loading states */}
           {isLoading && (
-              <div className="text-center py-12">
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
                 <RefreshCw className="h-10 w-10 text-blue-600 animate-spin mx-auto mb-4" />
                 <p className="text-gray-600">Generating your cognitive and emotional analysis...</p>
               </div>
           )}
 
-          {error && (
-              <div className="bg-red-50 text-red-800 p-6 rounded-lg mb-4 text-center">
+          {loadingPastAnalyses && (
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+                <RefreshCw className="h-10 w-10 text-blue-600 animate-spin mx-auto mb-4" />
+                <p className="text-gray-600">Loading your past analyses...</p>
+              </div>
+          )}
+
+          {/* Error state */}
+          {error && !isLoading && !loadingPastAnalyses && (
+              <div className="bg-red-50 text-red-800 p-6 rounded-lg mb-4 flex flex-col items-center">
                 <p className="mb-4">{error}</p>
                 <Button
                     onClick={onFetchAnalysis}
@@ -130,13 +308,33 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
               </div>
           )}
 
-          {currentAnalysis && currentAnalysis.success && currentAnalysis.data && currentAnalysis.data.ai_analysis && (
+          {/* Empty state when no analysis is available */}
+          {(!displayedAnalysis || !displayedAnalysis.success) && !isLoading && !loadingPastAnalyses && !error && (
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+                <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-6">
+                  {viewingPastAnalyses
+                      ? "No past analyses available yet. Generate your first analysis to build your history."
+                      : "No analysis data available. Generate a new analysis to see your personalized insights."}
+                </p>
+              </div>
+          )}
+
+          {/* Analysis display */}
+          {displayedAnalysis && !isLoading && !loadingPastAnalyses && (
               <Card className="bg-white border-gray-200 shadow-md rounded-xl">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-black text-xl">Cognitive-Emotional Analysis</CardTitle>
-                  <CardDescription className="text-gray-600 text-base">
-                    Generated on {analysisData.createdAt}
-                  </CardDescription>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-black text-xl">Cognitive-Emotional Analysis</CardTitle>
+                      <CardDescription className="text-gray-600 text-base">
+                        Generated on {analysisData.createdAt && formatDate(analysisData.createdAt)}
+                      </CardDescription>
+                    </div>
+                    {viewingPastAnalyses && (
+                        <Badge className="bg-blue-600 text-white">Past Analysis</Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-6 px-6">
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 shadow-sm">
@@ -171,7 +369,7 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
                             ))
                         ) : (
                             <li className="flex items-start">
-                              <span className="text-green-600 mr-2 text-lg">•</span> Due to the absence of data, no cognitive strengths can be identified.
+                              <span className="text-green-600 mr-2 text-lg">•</span> Not enough data to identify specific cognitive strengths.
                             </li>
                         )}
                       </ul>
@@ -188,7 +386,7 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
                             ))
                         ) : (
                             <li className="flex items-start">
-                              <span className="text-amber-600 mr-2 text-lg">•</span> The complete lack of data makes it impossible to pinpoint specific areas for improvement.
+                              <span className="text-amber-600 mr-2 text-lg">•</span> Insufficient data to determine areas needing improvement.
                             </li>
                         )}
                       </ul>
@@ -208,7 +406,7 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
                       ) : (
                           <div className="bg-white p-3 rounded-lg text-base text-gray-800 flex items-center border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                             <Lightbulb size={18} className="text-amber-500 mr-3 flex-shrink-0" />
-                            No recommendations available
+                            No specific recommendations available based on current data.
                           </div>
                       )}
                     </div>
@@ -225,7 +423,7 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
                           ))
                       ) : (
                           <li className="flex items-start">
-                            <span className="text-purple-600 mr-2 text-lg">•</span> Without sufficient data, influencing factors cannot be determined.
+                            <span className="text-purple-600 mr-2 text-lg">•</span> Insufficient data to determine influential factors.
                           </li>
                       )}
                     </ul>
@@ -237,19 +435,54 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
                   </div>
                 </CardContent>
                 <CardFooter className="border-t border-gray-200 pt-5 pb-6 px-6 flex flex-col md:flex-row justify-between gap-4">
-                  <Button variant="outline" className="border-gray-300 text-gray-800 hover:bg-gray-100 py-5 text-base rounded-lg">
-                    Previous Analysis
-                  </Button>
+                  {/* Past Analysis Navigation */}
+                  {viewingPastAnalyses && formattedPastAnalyses.length > 0 && (
+                      <div className="flex items-center gap-3">
+                        <Button
+                            onClick={handlePreviousAnalysis}
+                            disabled={currentPastAnalysisIndex === 0}
+                            variant="outline"
+                            className="border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center"
+                        >
+                          <ChevronLeft size={18} className="mr-1" />
+                          Previous
+                        </Button>
+                        <Badge className="mx-2 bg-blue-50 text-blue-800">
+                          {currentPastAnalysisIndex + 1} / {formattedPastAnalyses.length}
+                        </Badge>
+                        <Button
+                            onClick={handleNextAnalysis}
+                            disabled={currentPastAnalysisIndex === formattedPastAnalyses.length - 1}
+                            variant="outline"
+                            className="border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center"
+                        >
+                          Next
+                          <ChevronRight size={18} className="ml-1" />
+                        </Button>
+                      </div>
+                  )}
+
+                  {/* Action Buttons */}
                   <div className="flex gap-4">
-                    <Button
-                        onClick={onFetchAnalysis}
-                        variant="outline"
-                        className="border-blue-300 text-blue-800 hover:bg-blue-50 py-5 text-base rounded-lg"
-                    >
-                      <RefreshCw size={18} className="mr-2" />
-                      Refresh Analysis
-                    </Button>
-                    <Button className="bg-green-600 hover:bg-green-700 text-white py-5 text-base rounded-lg font-semibold transition-colors">
+                    {!viewingPastAnalyses ? (
+                        <Button
+                            onClick={onFetchAnalysis}
+                            variant="outline"
+                            className="border-blue-300 text-blue-800 hover:bg-blue-50"
+                        >
+                          <RefreshCw size={18} className="mr-2" />
+                          Refresh Analysis
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={handleReturnToCurrent}
+                            variant="outline"
+                            className="border-blue-300 text-blue-800 hover:bg-blue-50"
+                        >
+                          Return to Current
+                        </Button>
+                    )}
+                    <Button className="bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors">
                       Apply Recommendations
                     </Button>
                   </div>

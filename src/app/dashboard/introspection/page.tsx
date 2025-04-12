@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import IntrospectionWeeklyMetricsChart from './_partials/IntrospectionLineChart';
 import { getSessions } from "@/api/introspection/getSession";
 import { getAiAnalysis } from "@/api/introspection/getAiAnalysis";
+import { getPastAnalysis } from "@/api/introspection/getPastAnalysis";
 
 type TabValue = 'session' | 'history' | 'analysis' | 'charts';
 
@@ -82,6 +83,29 @@ interface AIAnalysisResponse {
     };
   };
   statusCode: number;
+  created_at?: string;
+  id?: string | number;
+  error?: string;
+}
+
+interface PastAnalysisItem {
+  id: number;
+  overall_response: string;
+  emotional_evaluation: string;
+  cognitive_evaluation: string;
+  strengths: { [key: string]: string };
+  areas_for_improvement: { [key: string]: string };
+  recommendations: { [key: string]: string };
+  influencing_factors: { [key: string]: string };
+  conclusion: string;
+  created_at: string;
+  user: number;
+}
+
+interface PastAnalysisResponse {
+  success: boolean;
+  data: PastAnalysisItem[];
+  statusCode: number;
 }
 
 const calculateCognitiveAvg = (session: HistorySession): number => {
@@ -103,6 +127,8 @@ const IntrospectionSection = () => {
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>('session');
+  const [pastAnalyses, setPastAnalyses] = useState<AIAnalysisResponse[]>([]);
+  const [isPastAnalysisLoading, setIsPastAnalysisLoading] = useState(false);
 
   const [sessionData, setSessionData] = useState<SessionData>({
     cognitiveMetrics: {
@@ -146,7 +172,10 @@ const IntrospectionSection = () => {
       }
     };
 
-    fetchSessions();
+    // Call the function and handle the promise
+    fetchSessions().catch(err => {
+      console.error("Unhandled promise rejection in fetchSessions:", err);
+    });
   }, [refreshTrigger]);
 
   // When tab changes to analysis, prepare the analysis section but don't fetch yet
@@ -159,6 +188,14 @@ const IntrospectionSection = () => {
 
   const handleRefresh = () => {
     setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Update session data
+  const handleSessionDataChange = (newData: Partial<SessionData>) => {
+    setSessionData(prevData => ({
+      ...prevData,
+      ...newData
+    }));
   };
 
   const fetchCurrentAnalysis = async () => {
@@ -206,6 +243,47 @@ const IntrospectionSection = () => {
       setAnalysisError(`Failed to load analysis: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsAnalysisLoading(false);
+    }
+  };
+
+  const fetchPastAnalyses = async () => {
+    try {
+      setIsPastAnalysisLoading(true);
+      const response = await getPastAnalysis() as PastAnalysisResponse;
+
+      console.log("Past analyses response:", response);
+
+      if (response && response.data) {
+        // Process the data to match the expected structure
+        const formattedPastAnalyses = response.data.map((item: PastAnalysisItem) => ({
+          success: true,
+          data: {
+            ai_analysis: {
+              overall: item.overall_response || '',
+              emotional_state_evaluation: item.emotional_evaluation || '',
+              cognitive_functioning_evaluation: item.cognitive_evaluation || '',
+              Strengths: item.strengths || {},
+              areas_for_improvement: item.areas_for_improvement || {},
+              Recommendations: item.recommendations || {},
+              factors_influence: item.influencing_factors || {},
+              conclusion: item.conclusion || ''
+            }
+          },
+          statusCode: 200,
+          created_at: item.created_at,
+          id: item.id
+        }));
+
+        setPastAnalyses(formattedPastAnalyses);
+      } else {
+        console.error("Failed to fetch past analyses:", response);
+        setAnalysisError("Failed to load past analyses. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Exception occurred during past analysis fetch:", error);
+      setAnalysisError(`Failed to load past analyses: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsPastAnalysisLoading(false);
     }
   };
 
@@ -312,6 +390,8 @@ const IntrospectionSection = () => {
                         isLoading={isAnalysisLoading}
                         error={analysisError}
                         onFetchAnalysis={fetchCurrentAnalysis}
+                        pastAnalyses={pastAnalyses}
+                        onFetchPastAnalyses={fetchPastAnalyses}
                     />
                 )}
 

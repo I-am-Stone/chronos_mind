@@ -25,5 +25,6 @@ export const API_CONFIG = {
         POST_SESSION: '/api/introspection/',
         GET_SESSION: '/api/introspection/session',
         AI_SESSION:'/api/introspection/ai-session',
+        AI_SESSION_ALL:'/api/introspection/past-ai-analysis',
     }
 };
