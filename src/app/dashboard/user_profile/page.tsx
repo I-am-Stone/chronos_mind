@@ -8,7 +8,7 @@ import CharacterInfo from './_partials/CharacterInfo';
 import Inventory from './_partials/Inventory';
 import Quests from './_partials/Quests';
 import Habits from './_partials/Habits';
-import Goals from './_partials/Goals';
+import Introspection from './_partials/introspection';
 import ActivityFeed from './_partials/ActivityFeed';
 
 export default function UserProfilePage() {
@@ -123,7 +123,7 @@ export default function UserProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <Quests quests={userData.quests} />
             <Habits habits={userData.habits} />
-            <Goals goals={userData.goals} />
+            <Introspection goals={userData.goals} />
           </div>
           
           {/* Activity Feed */}

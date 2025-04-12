@@ -15,7 +15,7 @@ interface GoalsProps {
   goals: Goal[];
 }
 
-const Goals: React.FC<GoalsProps> = ({ goals }) => {
+const Introspection: React.FC<GoalsProps> = ({ goals }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex items-center justify-between mb-4">
@@ -52,4 +52,4 @@ const Goals: React.FC<GoalsProps> = ({ goals }) => {
   );
 };
 
-export default Goals; 
+export default Introspection;
