@@ -23,12 +23,11 @@ const RegisterPage = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [apiError, setApiError] = useState<string | null>(null);
     const router = useRouter();
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
-        
+
         if (!formData.username.trim()) {
             newErrors.username = 'Username is required';
         } else if (formData.username.length < 3) {
@@ -51,6 +50,14 @@ const RegisterPage = () => {
             newErrors.confirmPassword = 'Passwords do not match';
         }
 
+        // Show validation errors as toast notifications
+        if (Object.keys(newErrors).length > 0) {
+            toast.error('Please fix the form errors', {
+                description: Object.values(newErrors)[0],
+                duration: 3000
+            });
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -61,7 +68,7 @@ const RegisterPage = () => {
             ...prev,
             [id]: value
         }));
-        
+
         // Clear error when user starts typing
         if (errors[id]) {
             setErrors(prev => {
@@ -74,9 +81,13 @@ const RegisterPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setApiError(null);
-        
+
         if (!validateForm()) return;
+
+        // Show loading toast
+        const loadingToast = toast.loading('Creating your account...', {
+            duration: Infinity
+        });
 
         setLoading(true);
 
@@ -89,15 +100,34 @@ const RegisterPage = () => {
             });
 
             if (response.success) {
-                router.push('/login');
-                toast.success('Registration successful');
-            } else {
-                setApiError(response.error || 'Registration failed. Please try again.');
-            }
+                toast.dismiss(loadingToast);
+                toast.success('Account created successfully!', {
+                    description: 'Redirecting you to the login page...',
+                    duration: 3000
+                });
 
+                // Small delay before redirecting to show success message
+                setTimeout(() => {
+                    router.push('/login');
+                }, 1500);
+            } else {
+                // Handle different types of errors with appropriate toasts
+                toast.dismiss(loadingToast);
+
+                if (response.error) {
+                    toast.error('Registration failed', {
+                        description: response.error,
+                        duration: 5000
+                    });
+                }
+            }
         } catch (error) {
             console.error("Registration error:", error);
-            setApiError('An unexpected error occurred. Please try again.');
+            toast.dismiss(loadingToast);
+            toast.error('Connection error', {
+                description: 'Unable to connect to the server. Please check your internet connection and try again.',
+                duration: 5000
+            });
         } finally {
             setLoading(false);
         }
@@ -122,7 +152,15 @@ const RegisterPage = () => {
         <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-indigo-50/30 flex flex-col items-center justify-center p-4 font-plus-jakarta">
             <MotionAnimation />
             <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,rgba(99,102,241,0.05),transparent)] pointer-events-none" />
-            <Toaster position="top-right" />
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    className: 'border border-gray-100',
+                    style: {
+                        fontSize: '14px'
+                    }
+                }}
+            />
             <div className="flex items-center gap-2 mb-8 group">
                 <Activity className="h-8 w-8 text-orange-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-2xl font-cabinet-grotesk tracking-wider text-gray-900">
@@ -139,12 +177,6 @@ const RegisterPage = () => {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                    {apiError && (
-                        <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
-                            {apiError}
-                        </div>
-                    )}
-
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="space-y-2">
                             <Label htmlFor="username">Username</Label>
@@ -226,13 +258,13 @@ const RegisterPage = () => {
                             {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
                         </div>
 
-                        <Button 
-                            type="submit" 
+                        <Button
+                            type="submit"
                             className="w-full bg-orange-500 hover:bg-orange-600 font-medium tracking-wide relative group overflow-hidden"
                             disabled={loading}
                         >
                             <span className="relative z-10">
-                                {loading ? "Creating account..." : "Create Account"}
+                                Create Account
                             </span>
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/0 via-indigo-400/30 to-indigo-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
                         </Button>
@@ -250,6 +282,12 @@ const RegisterPage = () => {
                     <Button
                         variant="outline"
                         className="w-full border-indigo-100 hover:bg-indigo-50"
+                        onClick={() => {
+                            toast.info('Google Sign-In', {
+                                description: 'Google authentication is coming soon!',
+                                duration: 3000
+                            });
+                        }}
                     >
                         Sign in with Google
                     </Button>

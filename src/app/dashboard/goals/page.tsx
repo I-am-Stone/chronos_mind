@@ -14,9 +14,8 @@ import { deleteGoal } from "@/api/goals/deleteGoals"
 import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
 import GoalsBarChart from "./_partials/GoalAnalytics";
-import {GetGoalStats} from "@/api/goals/getGoalStats";
-
-
+import { GetGoalStats } from "@/api/goals/getGoalStats";
+import { toast, Toaster } from 'sonner';
 
 interface Goal {
   id: number;
@@ -44,55 +43,77 @@ export default function GoalsPage() {
 
   useEffect(() => {
     const fetchGoals = async () => {
+      const loadingToast = toast.loading('Loading your quests...', {
+        duration: 5000
+      });
+
       try {
         setLoading(true);
         const response = await getGoals();
-        console.log("API Response:", response.data);
 
         if (response.success && response.data) {
           setGoals(response.data);
           setError(null);
+          toast.dismiss(loadingToast);
+          if (refreshTrigger > 0) {
+            toast.success('Goals updated', {
+              description: 'Your quest log has been refreshed!',
+              duration: 3000
+            });
+          }
         } else {
           setError("Failed to fetch goals");
           setGoals([]);
+          toast.dismiss(loadingToast);
+          toast.error('Failed to load quests', {
+            description: response.error || 'Please try again later',
+            duration: 5000
+          });
         }
 
       } catch (err) {
         console.error("Error fetching goals:", err);
         setError("An error occurred while fetching your goals");
         setGoals([]);
+        toast.dismiss(loadingToast);
+        toast.error('Connection error', {
+          description: 'Unable to connect to the server. Please check your internet connection and try again.',
+          duration: 5000
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchGoals().then((result) => {
-      console.log(result);
-    });
+    fetchGoals();
   }, [refreshTrigger]);
 
   useEffect(() => {
     const fetchGoalStats = async () => {
       try {
         const response = await GetGoalStats();
-        console.log("API Response:", response.data);
+
         if (response.success && response.data) {
           // The API returns an array, but we need the first item
           setChartData(Array.isArray(response.data) ? response.data[0] : response.data);
         } else {
           console.error("Failed to fetch Goal Stats:", response.error || "Unknown error");
+          toast.error('Stats unavailable', {
+            description: 'Could not load your goal statistics',
+            duration: 3000
+          });
         }
       } catch (error) {
         console.error("Error fetching Goal Stats:", error);
-      } finally {
-        setLoading(false);
+        toast.error('Stats error', {
+          description: 'Failed to load your achievement statistics',
+          duration: 3000
+        });
       }
     };
 
-    fetchGoalStats().then(r => {
-      console.log(r);
-    });
-  }, []);
+    fetchGoalStats();
+  }, [refreshTrigger]);
 
   const filteredGoals = useMemo(() => {
     return goals
@@ -123,54 +144,106 @@ export default function GoalsPage() {
   }, [goals, searchTerm, filterStatus, sortBy, sortOrder]);
 
   const handleEdit = (goal: Goal) => {
-    console.log('Editing goal:', goal);
+    toast.info('Edit functionality', {
+      description: 'Goal editing will be available in the next update!',
+      duration: 3000
+    });
   };
 
   const handleDelete = async (id: number) => {
-    console.log('Deleting goal with id:', id);
+    const confirmDelete = window.confirm('Are you sure you want to abandon this quest?');
+
+    if (!confirmDelete) return;
+
+    const deleteToast = toast.loading('Deleting your quest...', {
+      duration: 5000
+    });
+
     try {
       const response = await deleteGoal(id);
+
       if (response.success) {
         setGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
+        toast.dismiss(deleteToast);
+        toast.success('Quest abandoned', {
+          description: 'Your quest has been removed from your log',
+          duration: 3000
+        });
       } else {
-        console.error('Failed to delete goal:', response.error);
+        toast.dismiss(deleteToast);
+        toast.error('Failed to delete', {
+          description: response.error || 'There was a problem deleting this quest',
+          duration: 5000
+        });
       }
     } catch (error) {
       console.error('Error deleting goal:', error);
+      toast.dismiss(deleteToast);
+      toast.error('Connection error', {
+        description: 'Could not connect to the server. Please try again.',
+        duration: 5000
+      });
     }
   };
 
   const handleProgressUpdate = async (id: number, progress: number) => {
-    console.log('Updating progress for goal with id:', id, 'to', progress);
+    // Optimistically update UI first
+    setGoals(prevGoals =>
+        prevGoals.map(goal =>
+            goal.id === id
+                ? {
+                  ...goal,
+                  progress_bar: progress,
+                  status: progress === 100
+                      ? 'completed'
+                      : progress > 0
+                          ? 'in-progress'
+                          : 'not-started'
+                }
+                : goal
+        )
+    );
+
+    // Show appropriate toast based on progress
+    if (progress === 100) {
+      toast.success('Quest completed!', {
+        description: 'Congratulations on completing your quest!',
+        duration: 4000
+      });
+    } else if (progress === 0) {
+      toast.info('Progress reset', {
+        description: 'Your quest progress has been reset to zero',
+        duration: 3000
+      });
+    } else {
+      toast.success('Progress updated', {
+        description: `Your quest is now ${progress}% complete`,
+        duration: 2000
+      });
+    }
 
     try {
-      setGoals(prevGoals =>
-          prevGoals.map(goal =>
-              goal.id === id
-                  ? {
-                    ...goal,
-                    progress_bar: progress,
-                    status: progress === 100
-                        ? 'completed'
-                        : progress > 0
-                            ? 'in-progress'
-                            : 'not-started'
-                  }
-                  : goal
-          )
-      );
-      try {
-        const response = await UpdateProgress(id, progress);
-        if (!response.success) {
-          console.error('Failed to update progress:', response.error);
-        }else {
-          console.log('Progress updated successfully:', response.data);
-        }
-      }catch (error){
-        console.error('Error updating progress:', error);
+      const response = await UpdateProgress(id, progress);
+
+      if (!response.success) {
+        // If API call fails, show error and revert the UI change
+        toast.error('Update failed', {
+          description: response.error || 'Failed to update progress on the server',
+          duration: 5000
+        });
+
+        // Fetch fresh data to revert UI
+        setRefreshTrigger(prev => prev + 1);
       }
     } catch (error) {
       console.error('Error updating progress:', error);
+      toast.error('Connection error', {
+        description: 'Could not save your progress. Please try again.',
+        duration: 5000
+      });
+
+      // Fetch fresh data to revert UI
+      setRefreshTrigger(prev => prev + 1);
     }
   };
 
@@ -178,7 +251,7 @@ export default function GoalsPage() {
     return (
         <SidebarLayout>
           <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-            <div className="text-xl font-vt323">Loading your goals...</div>
+            <div className="text-xl font-vt323">Loading your quests...</div>
           </div>
         </SidebarLayout>
     );
@@ -186,6 +259,15 @@ export default function GoalsPage() {
 
   return (
       <SidebarLayout>
+        <Toaster
+            position="top-right"
+            toastOptions={{
+              className: 'font-vt323 border border-gray-100',
+              style: {
+                fontSize: '16px'
+              }
+            }}
+        />
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
           <SidebarTrigger />
           <div className="max-w-6xl mx-auto px-6 py-12">
@@ -208,7 +290,16 @@ export default function GoalsPage() {
           <div className="flex items-start p-4">
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-4xl mx-auto mt-6">
-                <Tabs defaultValue="dashboard" className="w-full">
+                <Tabs defaultValue="dashboard" className="w-full"
+                      onValueChange={(value) => {
+                        if (value === "allgoals" && goals.length > 0) {
+                          toast.info('Quest log loaded', {
+                            description: `You have ${goals.length} quests in your log`,
+                            duration: 2000
+                          });
+                        }
+                      }}
+                >
                   <div className="flex justify-center mb-6">
                     <TabsList className="flex font-vt323 w-full max-w-2xl justify-between">
                       <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -220,16 +311,33 @@ export default function GoalsPage() {
                   <TabsContent value="dashboard">
                     <div className="p-4">
                       <div>
-                      <GoalStreak/>
+                        <GoalStreak/>
                       </div>
                       <div className="p-25">
-                        {chartData && <GoalsBarChart chartData={chartData} />}
+                        {chartData ? (
+                            <GoalsBarChart chartData={chartData} />
+                        ) : (
+                            <div className="text-center p-8 text-gray-500">
+                              <p className="font-vt323 text-xl">No statistics available</p>
+                              <p className="font-vt323 mt-2">
+                                Complete goals to see your progress analytics
+                              </p>
+                            </div>
+                        )}
                       </div>
                     </div>
                   </TabsContent>
                   <TabsContent value="goals">
                     <div className="p-8">
-                      <GoalForm onGoalCreated={() => setRefreshTrigger(prev => prev + 1)} />
+                      <GoalForm
+                          onGoalCreated={() => {
+                            setRefreshTrigger(prev => prev + 1);
+                            toast.success('New quest created!', {
+                              description: 'Your new quest has been added to your log',
+                              duration: 3000
+                            });
+                          }}
+                      />
                     </div>
                   </TabsContent>
                   <TabsContent value="allgoals">
@@ -238,7 +346,15 @@ export default function GoalsPage() {
                           searchTerm={searchTerm}
                           setSearchTerm={setSearchTerm}
                           filterStatus={filterStatus}
-                          setFilterStatus={setFilterStatus}
+                          setFilterStatus={(status) => {
+                            setFilterStatus(status);
+                            if (status !== 'all') {
+                              toast.info('Filtering quests', {
+                                description: `Showing ${status} quests`,
+                                duration: 2000
+                              });
+                            }
+                          }}
                           sortBy={sortBy}
                           setSortBy={setSortBy}
                           sortOrder={sortOrder}
@@ -248,11 +364,11 @@ export default function GoalsPage() {
                           <div className="text-red-500 p-4 text-center">{error}</div>
                       ) : filteredGoals.length === 0 ? (
                           <div className="text-center p-8 text-gray-500">
-                            <p className="font-vt323 text-xl">No goals found</p>
+                            <p className="font-vt323 text-xl">No quests found</p>
                             <p className="font-vt323 mt-2">
                               {goals.length === 0
-                                  ? "Create your first goal to get started!"
-                                  : "No goals match your current filters"}
+                                  ? "Create your first quest to get started!"
+                                  : "No quests match your current filters"}
                             </p>
                           </div>
                       ) : (

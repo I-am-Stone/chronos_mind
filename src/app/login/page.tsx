@@ -2,46 +2,125 @@
 import { useState } from 'react';
 import React from "react";
 import Link from 'next/link';
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { MotionAnimation } from '@/components/shared/animations/MotionAnimation';
-import { Activity, Mail, Eye, EyeOff } from 'lucide-react';
+import { Activity, Mail, Eye, EyeOff, Lock } from 'lucide-react';
 import { login } from '@/api/auth/login';
 import { toast, Toaster } from 'sonner';
-
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
 
-    
-      
+    const validateForm = () => {
+        let isValid = true;
+
+        if (!email.trim()) {
+            toast.error('Email required', {
+                description: 'Please enter your email address',
+                duration: 3000
+            });
+            isValid = false;
+        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+            toast.error('Invalid email', {
+                description: 'Please enter a valid email address',
+                duration: 3000
+            });
+            isValid = false;
+        }
+
+        if (!password) {
+            toast.error('Password required', {
+                description: 'Please enter your password',
+                duration: 3000
+            });
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setError(null);
+
+        if (!validateForm()) {
+            return;
+        }
+
+        // Show loading toast
+        const loadingToast = toast.loading('Signing you in...', {
+            duration: Infinity
+        });
+
         setIsSubmitting(true);
 
         try {
             const response = await login({ email, password });
-            console.log('Login successful', response);
+
+            toast.dismiss(loadingToast);
+
             if (response.success) {
-                toast.success('Login successful');
-                router.push('/dashboard/goals');
-            }else {
-                toast.error('Invalid credentials');
+                toast.success('Login successful', {
+                    description: 'Welcome back! Redirecting to dashboard...',
+                    duration: 3000
+                });
+
+                // Small delay to show the success message
+                setTimeout(() => {
+                    router.push('/dashboard/goals');
+                }, 1000);
+            } else {
+                // Handle different error cases
+                if (response.error?.includes('account not found')) {
+                    toast.error('Account not found', {
+                        description: 'No account exists with this email. Please check your email or sign up.',
+                        duration: 5000
+                    });
+                } else if (response.error?.includes('incorrect password')) {
+                    toast.error('Incorrect password', {
+                        description: 'The password you entered is incorrect. Please try again.',
+                        duration: 5000
+                    });
+                } else if (response.error?.includes('account locked')) {
+                    toast.error('Account locked', {
+                        description: 'Your account has been temporarily locked. Please reset your password or contact support.',
+                        duration: 7000
+                    });
+                } else {
+                    toast.error('Login failed', {
+                        description: response.error || 'Please check your credentials and try again.',
+                        duration: 5000
+                    });
+                }
             }
         } catch (error) {
+            toast.dismiss(loadingToast);
             console.error('Login error', error);
-            setError(error instanceof Error ? error.message : 'An unexpected error occurred');
-            toast.error('Invalid credentials');
+
+            if (error instanceof Error && error.message.includes('network')) {
+                toast.error('Connection error', {
+                    description: 'Unable to connect to our servers. Please check your internet connection and try again.',
+                    duration: 5000
+                });
+            } else if (error instanceof Error && error.message.includes('timeout')) {
+                toast.error('Request timeout', {
+                    description: 'The server took too long to respond. Please try again later.',
+                    duration: 5000
+                });
+            } else {
+                toast.error('Login error', {
+                    description: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
+                    duration: 5000
+                });
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -49,6 +128,14 @@ const LoginPage = () => {
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
+    };
+
+    const handleForgotPassword = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast.info('Password reset', {
+            description: 'Password reset functionality coming soon!',
+            duration: 3000
+        });
     };
 
     return (
@@ -63,7 +150,16 @@ const LoginPage = () => {
                     Healthy Task Manager
                 </span>
             </div>
-            <Toaster position="top-right" />
+
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    className: 'border border-gray-100 shadow-md',
+                    style: {
+                        fontSize: '14px'
+                    }
+                }}
+            />
 
             {/* Login Card */}
             <Card className="w-full max-w-md relative overflow-hidden bg-white/70 backdrop-blur-sm">
@@ -74,12 +170,6 @@ const LoginPage = () => {
 
                 <CardContent className="space-y-6">
                     <form className="space-y-4" onSubmit={handleSubmit}>
-                        {error && (
-                            <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
-                                {error}
-                            </div>
-                        )}
-                        
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <div className="relative">
@@ -99,18 +189,21 @@ const LoginPage = () => {
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
                             <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                                 <Input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
-                                    className="tracking-wider pr-10"
+                                    className="tracking-wider pl-10 pr-10"
+                                    placeholder="Enter your password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
                                 <button
                                     type="button"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                                     onClick={togglePasswordVisibility}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? (
                                         <EyeOff className="h-4 w-4" />
@@ -123,21 +216,25 @@ const LoginPage = () => {
 
                         <div className="flex items-center justify-between">
                             <label className="flex items-center space-x-2 cursor-pointer">
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
                                     checked={rememberMe}
                                     onChange={(e) => setRememberMe(e.target.checked)}
                                 />
                                 <span className="text-sm text-gray-600">Remember me</span>
                             </label>
-                            <a href="#" className="text-sm text-orange-600 hover:text-orange-700 hover:underline">
+                            <a
+                                href="#"
+                                className="text-sm text-orange-600 hover:text-orange-700 hover:underline"
+                                onClick={handleForgotPassword}
+                            >
                                 Forgot password?
                             </a>
                         </div>
 
-                        <Button 
-                            type="submit" 
+                        <Button
+                            type="submit"
                             className="w-full bg-orange-500 hover:bg-orange-600 font-medium tracking-wide relative group overflow-hidden"
                             disabled={isSubmitting}
                         >
@@ -159,7 +256,16 @@ const LoginPage = () => {
                     </div>
 
                     {/* Social Login */}
-                    <Button variant="outline" className="w-full relative group">
+                    <Button
+                        variant="outline"
+                        className="w-full relative group"
+                        onClick={() => {
+                            toast.info('Google Sign-In', {
+                                description: 'Google authentication is coming soon!',
+                                duration: 3000
+                            });
+                        }}
+                    >
                         <span className="relative z-10">Google</span>
                     </Button>
 

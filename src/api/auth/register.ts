@@ -14,5 +14,6 @@ export const register = async (User: User) => {
         User,
         false,
     );
+    console.log(response);
     return response;
 };

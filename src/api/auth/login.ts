@@ -11,8 +11,8 @@ interface LoginResponse {
     user: {
         id: string;
         email: string;
-        // other user properties
     };
+    error: string;
 }
 
 export const login = async (user: User) => {
@@ -25,6 +25,8 @@ export const login = async (user: User) => {
     if (response.success && response.data?.token) {
         localStorage.setItem("authToken", response.data.token);
     }
+
+    console.log(response.error);
 
     return response;
 };
