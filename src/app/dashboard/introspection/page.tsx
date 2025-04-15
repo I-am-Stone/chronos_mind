@@ -237,7 +237,7 @@ const IntrospectionSection = () => {
       }
 
       console.log("Setting analysis state with:", response);
-      setAnalysis(response as AIAnalysisResponse);
+      setAnalysis(response);
     } catch (error) {
       console.error("Exception occurred during analysis fetch:", error);
       setAnalysisError(`Failed to load analysis: ${error instanceof Error ? error.message : "Unknown error"}`);

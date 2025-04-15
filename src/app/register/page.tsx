@@ -111,52 +111,87 @@ const RegisterPage = () => {
                     router.push('/login');
                 }, 1500);
             } else {
-                // Handle error based on the format from the API layer
-                const errorMessage = response.error || 'Registration failed. Please try again.';
-                
-                // Check if error message contains field-specific errors (indicated by |)
-                if (errorMessage.includes('|')) {
-                    // Parse field errors from the error message format "field: message | field2: message2"
-                    const fieldErrors = errorMessage.split('|').reduce((acc, fieldError) => {
-                        const [field, message] = fieldError.trim().split(':');
-                        if (field && message) {
-                            acc[field.trim()] = message.trim();
-                        }
-                        return acc;
-                    }, {} as Record<string, string>);
-                    
-                    // Update form errors state with API validation errors
-                    setErrors(fieldErrors);
-                    
-                    // Show the first error in the toast
-                    const firstField = Object.keys(fieldErrors)[0];
-                    const firstMessage = fieldErrors[firstField];
-                    
-                    toast.error('Registration failed', {
-                        description: `${firstField}: ${firstMessage}`,
-                        duration: 5000
-                    });
-                } else {
-                    // Handle general error message
-                    toast.error('Registration failed', {
-                        description: errorMessage,
-                        duration: 5000
-                    });
-                }
+                // Handle API response errors
+                handleApiErrors(response.error);
             }
         } catch (error) {
             console.error("Registration error:", error);
             toast.dismiss(loadingToast);
-            
+
             // Improved error handling for network/unexpected errors
             const errorMessage = error instanceof Error ? error.message : 'Unable to connect to the server';
-            
+
             toast.error('Connection error', {
                 description: `${errorMessage}. Please check your internet connection and try again.`,
                 duration: 5000
             });
         } finally {
             setLoading(false);
+        }
+    };
+
+    // New function to handle different API error formats
+    const handleApiErrors = (error: any) => {
+        if (!error) {
+            toast.error('Registration failed', {
+                description: 'An unknown error occurred. Please try again.',
+                duration: 5000
+            });
+            return;
+        }
+
+        let fieldErrors: Record<string, string> = {};
+
+        // Case 1: Error is an object with field names as keys
+        if (typeof error === 'object' && error !== null && !Array.isArray(error)) {
+            fieldErrors = error;
+        }
+        // Case 2: Error is a string in "field: message | field2: message2" format
+        else if (typeof error === 'string' && error.includes('|')) {
+            fieldErrors = error.split('|').reduce((acc, fieldError) => {
+                const [field, message] = fieldError.trim().split(':');
+                if (field && message) {
+                    acc[field.trim()] = message.trim();
+                }
+                return acc;
+            }, {} as Record<string, string>);
+        }
+        // Case 3: Error is a simple string with "field: message" format (single field)
+        else if (typeof error === 'string' && error.includes(':')) {
+            const [field, message] = error.trim().split(':');
+            if (field && message) {
+                fieldErrors[field.trim()] = message.trim();
+            }
+        }
+        // Case 4: Error is a plain string message
+        else if (typeof error === 'string') {
+            // No specific field, show as general error
+            toast.error('Registration failed', {
+                description: error,
+                duration: 5000
+            });
+            return;
+        }
+
+        // Update form errors state if we have field-specific errors
+        if (Object.keys(fieldErrors).length > 0) {
+            setErrors(fieldErrors);
+
+            // Show the first error in the toast
+            const firstField = Object.keys(fieldErrors)[0];
+            const firstMessage = fieldErrors[firstField];
+
+            toast.error('Registration failed', {
+                description: `${firstField}: ${firstMessage}`,
+                duration: 5000
+            });
+        } else {
+            // Fallback for any other error format
+            const errorMessage = typeof error === 'string' ? error : 'Registration failed. Please try again.';
+            toast.error('Registration failed', {
+                description: errorMessage,
+                duration: 5000
+            });
         }
     };
 
