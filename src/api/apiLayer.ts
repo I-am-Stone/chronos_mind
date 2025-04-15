@@ -14,7 +14,7 @@ const apiLayer = {
     async request<T>(
         endpoint: string,
         method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-        data?: any,
+        data?: T,
         authRequired: boolean = false,
         headers: Record<string, string> = {}
     ): Promise<ApiResponse<T>> {
@@ -53,69 +53,53 @@ const apiLayer = {
             }
 
             const response = await fetch(url, options);
-            if (!response.ok) {
-                let errorMessage = "An error occurred while processing your request.";
-                let responseData;
+            const contentType = response.headers.get("content-type");
+            let responseData: any;
 
+            if (response.status !== 204 && contentType?.includes("application/json")) {
                 try {
                     responseData = await response.json();
-                    if (responseData.error || responseData.message) {
-                        errorMessage = responseData.error || responseData.message;
-                    }
-                } catch (e) {
-                    errorMessage = response.statusText || errorMessage;
-                }
-
-                if (response.status === 401) {
-                    console.error("Authentication failed: Invalid or expired token");
-                    return {
-                        success: false,
-                        error: "Authentication failed. Please log in again.",
-                        statusCode: 401
-                    };
-                } else if (response.status === 403) {
-                    return {
-                        success: false,
-                        error: "You don't have permission to access this resource.",
-                        statusCode: 403
-                    };
-                } else {
-                    console.error(`HTTP error! Status: ${response.status}, Message: ${errorMessage}`);
-
-                    return {
-                        success: false,
-                        error: errorMessage,
-                        statusCode: response.status
-                    };
-                }
-            }
-
-            // Check for empty response
-            const contentType = response.headers.get("content-type");
-            let result;
-
-            if (response.status === 204 || !response.body || response.headers.get("content-length") === "0") {
-                // No content response
-                result = null;
-            } else if (contentType && contentType.includes("application/json")) {
-                // JSON response
-                try {
-                    result = await response.json();
                 } catch (e) {
                     console.warn("Response claimed to be JSON but parsing failed:", e);
-                    const text = await response.text();
-                    result = text.length > 0 ? text : null;
+                    responseData = {};
                 }
             } else {
-                // Non-JSON response (text, etc.)
-                result = await response.text();
+                responseData = null;
+            }
+
+            // Handle non-OK response
+            if (!response.ok) {
+                let errorMessage = "An error occurred while processing your request.";
+
+                if (typeof responseData === "object" && responseData !== null) {
+                    errorMessage = responseData.message || responseData.error || "";
+
+                    // Fallback to field-level error messages
+                    if (!errorMessage) {
+                        errorMessage = Object.entries(responseData)
+                            .map(([field, messages]) => {
+                                if (Array.isArray(messages)) {
+                                    return `${field}: ${messages.join(", ")}`;
+                                }
+                                return `${field}: ${messages}`;
+                            })
+                            .join(" | ");
+                    }
+                }
+
+                return {
+                    success: false,
+                    error: errorMessage,
+                    statusCode: response.status
+                };
             }
 
             return {
                 success: true,
-                data: result as T,
+                data: responseData as T,
                 statusCode: response.status
             };
+
         } catch (error: any) {
             console.error("API Service Error:", error.message);
             return {
@@ -129,11 +113,11 @@ const apiLayer = {
         return this.request<T>(endpoint, "GET", undefined, authRequired, headers);
     },
 
-    post<T>(endpoint: string, data: any, authRequired = false, headers = {}): Promise<ApiResponse<T>> {
+    post<T>(endpoint: string, data: T, authRequired = false, headers = {}): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, "POST", data, authRequired, headers);
     },
 
-    put<T>(endpoint: string, data: any, authRequired = false, headers = {}): Promise<ApiResponse<T>> {
+    put<T>(endpoint: string, data: T, authRequired = false, headers = {}): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, "PUT", data, authRequired, headers);
     },
 

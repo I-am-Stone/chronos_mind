@@ -99,24 +99,47 @@ const RegisterPage = () => {
                 confirmPassword: formData.confirmPassword
             });
 
+            toast.dismiss(loadingToast);
+
             if (response.success) {
-                toast.dismiss(loadingToast);
                 toast.success('Account created successfully!', {
                     description: 'Redirecting you to the login page...',
                     duration: 3000
                 });
 
-                // Small delay before redirecting to show success message
                 setTimeout(() => {
                     router.push('/login');
                 }, 1500);
             } else {
-                // Handle different types of errors with appropriate toasts
-                toast.dismiss(loadingToast);
-
-                if (response.error) {
+                // Handle error based on the format from the API layer
+                const errorMessage = response.error || 'Registration failed. Please try again.';
+                
+                // Check if error message contains field-specific errors (indicated by |)
+                if (errorMessage.includes('|')) {
+                    // Parse field errors from the error message format "field: message | field2: message2"
+                    const fieldErrors = errorMessage.split('|').reduce((acc, fieldError) => {
+                        const [field, message] = fieldError.trim().split(':');
+                        if (field && message) {
+                            acc[field.trim()] = message.trim();
+                        }
+                        return acc;
+                    }, {} as Record<string, string>);
+                    
+                    // Update form errors state with API validation errors
+                    setErrors(fieldErrors);
+                    
+                    // Show the first error in the toast
+                    const firstField = Object.keys(fieldErrors)[0];
+                    const firstMessage = fieldErrors[firstField];
+                    
                     toast.error('Registration failed', {
-                        description: response.error,
+                        description: `${firstField}: ${firstMessage}`,
+                        duration: 5000
+                    });
+                } else {
+                    // Handle general error message
+                    toast.error('Registration failed', {
+                        description: errorMessage,
                         duration: 5000
                     });
                 }
@@ -124,8 +147,12 @@ const RegisterPage = () => {
         } catch (error) {
             console.error("Registration error:", error);
             toast.dismiss(loadingToast);
+            
+            // Improved error handling for network/unexpected errors
+            const errorMessage = error instanceof Error ? error.message : 'Unable to connect to the server';
+            
             toast.error('Connection error', {
-                description: 'Unable to connect to the server. Please check your internet connection and try again.',
+                description: `${errorMessage}. Please check your internet connection and try again.`,
                 duration: 5000
             });
         } finally {

@@ -8,12 +8,17 @@ interface User {
     confirmPassword: string
 }
 export const register = async (User: User) => {
-
     const response = await apiLayer.post(
         API_CONFIG.ENDPOINTS.REGISTER,
         User,
         false,
     );
-    console.log(response);
+
+    if (response.success) {
+        console.log("Registration successful:", response.data);
+    } else {
+        console.error("Registration failed:", response.error);
+    }
+
     return response;
 };

@@ -8,6 +8,7 @@ import {
     ScrollText,
     Book,
     Dumbbell,
+    LogOut,
   } from "lucide-react";
 import {
     Sidebar,
@@ -53,7 +54,7 @@ import Link from "next/link";
     },
     {
       title: "User Manual",
-      url: "user_manual",
+      url: "user_manul",
       icon: Book,
       color: "text-emerald-500",
       badge: "3"
@@ -75,6 +76,12 @@ import Link from "next/link";
       title: "Settings",
       url: "settings",
       icon: Settings,
+      color: "text-gray-500"
+    },
+    {
+      title: "Logout",
+      url: "logout",
+      icon: LogOut,
       color: "text-gray-500"
     },
   ];
