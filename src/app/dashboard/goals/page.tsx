@@ -29,17 +29,16 @@ interface Goal {
 }
 
 export default function GoalsPage() {
+  const [activeTab, setActiveTab] = useState('dashboard'); // Add active tab state
   const [goals, setGoals] = useState<backendGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'progress' | 'title'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [chartData, setChartData] = useState(null);
-
 
   useEffect(() => {
     const fetchGoals = async () => {
@@ -70,7 +69,6 @@ export default function GoalsPage() {
             duration: 5000
           });
         }
-
       } catch (err) {
         console.error("Error fetching goals:", err);
         setError("An error occurred while fetching your goals");
@@ -94,7 +92,6 @@ export default function GoalsPage() {
         const response = await GetGoalStats();
 
         if (response.success && response.data) {
-          // The API returns an array, but we need the first item
           setChartData(Array.isArray(response.data) ? response.data[0] : response.data);
         } else {
           console.error("Failed to fetch Goal Stats:", response.error || "Unknown error");
@@ -119,7 +116,6 @@ export default function GoalsPage() {
     return goals
         .filter(goal => {
           const matchesSearch = goal.goal_title.toLowerCase().includes(searchTerm.toLowerCase());
-
           const statusMatch =
               filterStatus === 'all' ? true :
                   filterStatus === 'completed' ? goal.progress_bar === 100 :
@@ -186,7 +182,12 @@ export default function GoalsPage() {
     }
   };
 
-  const handleProgressUpdate = async (id: number, progress: number) => {
+  const handleProgressUpdate = async (id: number, progress: number, e?: React.MouseEvent) => {
+    // If an event was passed, prevent default to avoid page refresh
+    if (e) {
+      e.preventDefault();
+    }
+
     // Optimistically update UI first
     setGoals(prevGoals =>
         prevGoals.map(goal =>
@@ -226,14 +227,23 @@ export default function GoalsPage() {
       const response = await UpdateProgress(id, progress);
 
       if (!response.success) {
-        // If API call fails, show error and revert the UI change
+        // If API call fails, show error but don't refresh the page
         toast.error('Update failed', {
           description: response.error || 'Failed to update progress on the server',
           duration: 5000
         });
 
-        // Fetch fresh data to revert UI
-        setRefreshTrigger(prev => prev + 1);
+        // Update local state to reflect server state without page refresh
+        const freshGoalsResponse = await getGoals();
+        if (freshGoalsResponse.success && freshGoalsResponse.data) {
+          setGoals(freshGoalsResponse.data);
+        }
+      } else {
+        // Optionally update chart data when progress is updated successfully
+        const statsResponse = await GetGoalStats();
+        if (statsResponse.success && statsResponse.data) {
+          setChartData(Array.isArray(statsResponse.data) ? statsResponse.data[0] : statsResponse.data);
+        }
       }
     } catch (error) {
       console.error('Error updating progress:', error);
@@ -241,9 +251,6 @@ export default function GoalsPage() {
         description: 'Could not save your progress. Please try again.',
         duration: 5000
       });
-
-      // Fetch fresh data to revert UI
-      setRefreshTrigger(prev => prev + 1);
     }
   };
 
@@ -290,15 +297,10 @@ export default function GoalsPage() {
           <div className="flex items-start p-4">
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-4xl mx-auto mt-6">
-                <Tabs defaultValue="dashboard" className="w-full"
-                      onValueChange={(value) => {
-                        if (value === "allgoals" && goals.length > 0) {
-                          toast.info('Quest log loaded', {
-                            description: `You have ${goals.length} quests in your log`,
-                            duration: 2000
-                          });
-                        }
-                      }}
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="w-full"
                 >
                   <div className="flex justify-center mb-6">
                     <TabsList className="flex font-vt323 w-full max-w-2xl justify-between">
@@ -332,6 +334,7 @@ export default function GoalsPage() {
                       <GoalForm
                           onGoalCreated={() => {
                             setRefreshTrigger(prev => prev + 1);
+                            setActiveTab('allgoals'); // Switch to all goals tab after creation
                             toast.success('New quest created!', {
                               description: 'Your new quest has been added to your log',
                               duration: 3000
