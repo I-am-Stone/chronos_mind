@@ -1,52 +1,62 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trophy, Zap, Shield, AlertTriangle, Star } from 'lucide-react';
 import SidebarLayout from '@/components/shared/sidebar/layout';
 import CharacterHeader from './_partials/CharacterHeader';
-import GameStats from './_partials/GameStats';
-import CharacterInfo from './_partials/CharacterInfo';
-import Inventory from './_partials/Inventory';
-import Quests from './_partials/Quests';
-import Habits from './_partials/Habits';
-import Introspection from './_partials/introspection';
+// import GameStats from './_partials/GameStats';
+// import CharacterInfo from './_partials/CharacterInfo';
+// import Inventory from './_partials/Inventory';
+// import Quests from './_partials/Quests';
+// import Habits from './_partials/Habits';
+// import Introspection from './_partials/introspection';
 import ActivityFeed from './_partials/ActivityFeed';
+import { getProfileData } from '@/api/user_profile/getProfileData';
+
+// Define the expected type for user data based on the CharacterHeader component's requirements
+interface UserData {
+  user_name: string;
+  user_profile: {
+    profile_picture: string | null;
+    level: number;
+    character_class: string;
+    exp_points: number;
+    total_points: number;
+    achievements: any[] | null;
+    about_me: string | null;
+    created_at: string;
+    updated_at: string;
+  };
+}
 
 export default function UserProfilePage() {
-  // Sample user data with game-like properties
-  const [userData] = useState({
-    name: "Alex Johnson",
-    username: "DragonSlayer42",
-    joinedDate: "January 15, 2025",
-    points: 1250,
-    level: 3,
-    xp: 350,
-    xpToNextLevel: 500,
-    streak: 14,
-    achievements: 8,
-    profileImage: "/api/placeholder/150/150",
-    characterClass: "Warrior",
-    characterLevel: "Novice Adventurer",
-    inventory: [
-      { id: 1, name: "Health Potion", quantity: 3 },
-      { id: 2, name: "Mana Potion", quantity: 2 },
-      { id: 3, name: "Golden Key", quantity: 1 }
-    ],
-    goals: [
-      { id: 1, title: "Learn Spanish", category: "Education", points: 350, progress: 45, color: "bg-blue-500" },
-      { id: 2, title: "Run a half marathon", category: "Fitness", points: 450, progress: 30, color: "bg-red-500" },
-      { id: 3, title: "Read 20 books", category: "Personal Growth", points: 200, progress: 25, color: "bg-purple-500" }
-    ],
-    habits: [
-      { id: 1, title: "Morning meditation", category: "Mindfulness", streak: 7, points: 140, color: "bg-green-500" },
-      { id: 2, title: "Daily exercise", category: "Fitness", streak: 3, points: 120, color: "bg-yellow-500" },
-      { id: 3, title: "Journaling", category: "Reflection", streak: 14, points: 210, color: "bg-indigo-500" }
-    ],
-    quests: [
-      { id: 1, title: "7-Day Fitness Challenge", reward: 150, progress: 3, total: 7, color: "bg-red-400" },
-      { id: 2, title: "Learn 50 New Words", reward: 100, progress: 12, total: 50, color: "bg-blue-400" },
-      { id: 3, title: "Meditation Mastery", reward: 200, progress: 5, total: 21, color: "bg-green-400" }
-    ]
+  // Initialize with the correct structure and proper typing
+  const [userData, setUserData] = useState<UserData>({
+    user_name: '',
+    user_profile: {
+      profile_picture: null,
+      level: 1,
+      character_class: 'NOVICE WARRIOR',
+      exp_points: 0,
+      total_points: 0,
+      achievements: null,
+      about_me: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
   });
+
+  // Fetch user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await getProfileData();
+        setUserData(response.data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    fetchUserData();
+  }, []);
 
   // Activity updates/notifications with game-like events
   const [notifications] = useState([
@@ -106,26 +116,16 @@ export default function UserProfilePage() {
   return (
     <SidebarLayout>
       <div className="min-h-screen p-8 flex justify-center items-center bg-gradient-to-br from-purple-50 to-blue-50">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto w-full">
           <CharacterHeader userData={userData} />
-          
           {/* Stats and Inventory */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <GameStats achievements={userData.achievements} />
-            <CharacterInfo 
-              characterClass={userData.characterClass}
-              characterLevel={userData.characterLevel}
-            />
-            <Inventory inventory={userData.inventory} />
+            {/* Content for stats and inventory will go here */}
           </div>
-          
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <Quests quests={userData.quests} />
-            <Habits habits={userData.habits} />
-            <Introspection goals={userData.goals} />
+            {/* Main content will go here */}
           </div>
-          
           {/* Activity Feed */}
           <ActivityFeed notifications={notifications} />
         </div>
