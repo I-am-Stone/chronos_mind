@@ -19,7 +19,37 @@ interface CharacterHeaderProps {
 }
 
 const CharacterHeader: React.FC<CharacterHeaderProps> = ({ userData }) => {
-  const percentToNextLevel = (userData.xp / userData.xpToNextLevel) * 100;
+  // Calculate percentage to next level, ensuring it doesn't exceed 100%
+  // For the last level, we'll show a full progress bar
+  const percentToNextLevel = userData.xpToNextLevel === Infinity ?
+      100 :
+      Math.min(100, (userData.xp - getLevelThreshold(userData.level)) / userData.xpToNextLevel * 100);
+
+  // Helper function to get the threshold for the current level
+  function getLevelThreshold(level: number) {
+    const thresholds: Record<number, number> = {
+      1: 0,
+      2: 1000,
+      3: 2000,
+      4: 4000,
+      5: 8000,
+      6: 16000,
+      7: 32000,
+      8: 64000
+    };
+    return thresholds[level] || 0;
+  }
+
+  // Format XP display for the progress bar
+  const currentLevelXP = userData.xp - getLevelThreshold(userData.level);
+  const nextLevelXP = userData.xpToNextLevel === Infinity ?
+      currentLevelXP : // If at max level, just show current XP
+      userData.xpToNextLevel;
+
+  // Format the XP progress text
+  const xpProgressText = userData.level >= 8 ?
+      `${currentLevelXP} XP (Max Level)` :
+      `${currentLevelXP} / ${nextLevelXP} XP`;
 
   return (
       <div className="bg-gradient-to-r from-indigo-700 to-purple-700 rounded-2xl shadow-2xl p-8 mb-8 text-white relative overflow-hidden border border-indigo-400 border-opacity-30">
@@ -45,8 +75,8 @@ const CharacterHeader: React.FC<CharacterHeaderProps> = ({ userData }) => {
               <Image
                   src={userData.profileImage}
                   alt={userData.name}
-                  width={32}
-                  height={32}
+                  width={128}
+                  height={128}
                   className="w-32 h-32 rounded-full object-cover border-4 border-yellow-400 shadow-xl"
               />
               <div className="absolute -bottom-3 -right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-900 rounded-full w-14 h-14 flex items-center justify-center font-bold border-2 border-white shadow-lg text-xl transform transition-transform duration-300 hover:scale-110">
@@ -92,7 +122,8 @@ const CharacterHeader: React.FC<CharacterHeaderProps> = ({ userData }) => {
             <div className="bg-indigo-800 bg-opacity-60 rounded-2xl p-4 backdrop-blur-sm border border-indigo-500 border-opacity-30 shadow-inner transform transition-transform duration-300 hover:scale-105">
               <div className="flex justify-between mb-2 text-sm text-indigo-100 font-medium">
                 <span>Level {userData.level}</span>
-                <span>Level {userData.level + 1}</span>
+                {userData.level < 8 && <span>Level {userData.level + 1}</span>}
+                {userData.level >= 8 && <span>Max Level</span>}
               </div>
 
               <div className="w-full bg-indigo-900 rounded-full h-5 shadow-inner overflow-hidden">
@@ -100,12 +131,12 @@ const CharacterHeader: React.FC<CharacterHeaderProps> = ({ userData }) => {
                     className="bg-gradient-to-r from-yellow-400 to-orange-500 h-5 rounded-full shadow-md relative transition-all duration-1000 ease-out"
                     style={{ width: `${percentToNextLevel}%` }}
                 >
-                  <div className="absolute inset-0 bg-white opacity-30 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjRkZGIiBzdG9wLW9wYWNpdHk9Ii4yIiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRiIgc3RvcC1vcGFjaXR5PSIwIiBvZmZzZXQ9IjEwMCUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBmaWxsPSJ1cmwoI2EpIiBkPSJNMCAwaDMwdjMwSDB6Ii8+PC9zdmc+')]"></div>
+                  <div className="absolute inset-0 opacity-30 w-full h-full bg-white"></div>
                 </div>
               </div>
 
               <p className="text-base text-center mt-2 text-indigo-100 font-medium">
-                {userData.xp} / {userData.xpToNextLevel} XP
+                {xpProgressText}
               </p>
             </div>
           </div>
