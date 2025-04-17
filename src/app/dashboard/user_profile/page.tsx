@@ -12,8 +12,11 @@ import CharacterHeader from './_partials/CharacterHeader';
 import ActivityFeed from './_partials/ActivityFeed';
 import { getProfileData } from '@/api/user_profile/getProfileData';
 
-// Define the expected type for user data based on the CharacterHeader component's requirements
-interface UserData {
+// Define constant for XP calculations
+const XP_PER_LEVEL = 100; // Adjust this value based on your game mechanics
+
+// Define the expected type for user data based on the API response
+interface UserProfileData {
   user_name: string;
   user_profile: {
     profile_picture: string | null;
@@ -28,21 +31,33 @@ interface UserData {
   };
 }
 
+// Define the type expected by the CharacterHeader component
+interface FormattedUserData {
+  name: string;
+  username: string;
+  points: number;
+  streak: number;
+  achievements: number;
+  profileImage: string;
+  level: number;
+  characterClass: string;
+  xp: number;
+  xpToNextLevel: number;
+}
+
 export default function UserProfilePage() {
-  // Initialize with the correct structure and proper typing
-  const [userData, setUserData] = useState<UserData>({
-    user_name: '',
-    user_profile: {
-      profile_picture: null,
-      level: 1,
-      character_class: 'NOVICE WARRIOR',
-      exp_points: 0,
-      total_points: 0,
-      achievements: null,
-      about_me: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
+  // Initialize with the correct structure for CharacterHeader
+  const [userData, setUserData] = useState<FormattedUserData>({
+    name: 'User',
+    username: 'user',
+    points: 0,
+    streak: 0,
+    achievements: 0,
+    profileImage: '/assets/images/default-avatar.png',
+    level: 1,
+    characterClass: 'NOVICE WARRIOR',
+    xp: 0,
+    xpToNextLevel: XP_PER_LEVEL
   });
 
   // Fetch user data
@@ -50,15 +65,15 @@ export default function UserProfilePage() {
     const fetchUserData = async () => {
       try {
         const response = await getProfileData();
-        
+
         if (response.success && response.data) {
           const { user_name, user_profile } = response.data;
-          
-          // Calculate XP to next level - adjust formula as needed
+
+          // Calculate XP to next level
           const currentLevelXP = user_profile.level * XP_PER_LEVEL;
           const nextLevelXP = (user_profile.level + 1) * XP_PER_LEVEL;
           const xpToNextLevel = nextLevelXP - currentLevelXP;
-          
+
           setUserData({
             name: user_name || 'User',
             username: user_name?.toLowerCase() || 'user',
@@ -76,10 +91,9 @@ export default function UserProfilePage() {
         console.error('Error fetching user data:', error);
       }
     };
-    
+
     fetchUserData();
   }, []);
-
 
   // Activity updates/notifications with game-like events
   const [notifications] = useState([
@@ -137,22 +151,22 @@ export default function UserProfilePage() {
   ]);
 
   return (
-    <SidebarLayout>
-      <div className="min-h-screen p-8 flex justify-center items-center bg-gradient-to-br from-purple-50 to-blue-50">
-        <div className="max-w-6xl mx-auto w-full">
-          <CharacterHeader userData={userData} />
-          {/* Stats and Inventory */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Content for stats and inventory will go here */}
+      <SidebarLayout>
+        <div className="min-h-screen p-8 flex justify-center items-center bg-gradient-to-br from-purple-50 to-blue-50">
+          <div className="max-w-6xl mx-auto w-full">
+            <CharacterHeader userData={userData} />
+            {/* Stats and Inventory */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {/* Content for stats and inventory will go here */}
+            </div>
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              {/* Main content will go here */}
+            </div>
+            {/* Activity Feed */}
+            <ActivityFeed notifications={notifications} />
           </div>
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {/* Main content will go here */}
-          </div>
-          {/* Activity Feed */}
-          <ActivityFeed notifications={notifications} />
         </div>
-      </div>
-    </SidebarLayout>
+      </SidebarLayout>
   );
 }
