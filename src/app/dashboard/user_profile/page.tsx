@@ -50,13 +50,36 @@ export default function UserProfilePage() {
     const fetchUserData = async () => {
       try {
         const response = await getProfileData();
-        setUserData(response.data);
+        
+        if (response.success && response.data) {
+          const { user_name, user_profile } = response.data;
+          
+          // Calculate XP to next level - adjust formula as needed
+          const currentLevelXP = user_profile.level * XP_PER_LEVEL;
+          const nextLevelXP = (user_profile.level + 1) * XP_PER_LEVEL;
+          const xpToNextLevel = nextLevelXP - currentLevelXP;
+          
+          setUserData({
+            name: user_name || 'User',
+            username: user_name?.toLowerCase() || 'user',
+            points: user_profile.total_points || 0,
+            streak: 0, // Add this if you have streak data
+            achievements: user_profile.achievements?.length || 0,
+            profileImage: user_profile.profile_picture || '/assets/images/default-avatar.png',
+            level: user_profile.level || 1,
+            characterClass: user_profile.character_class || 'NOVICE WARRIOR',
+            xp: user_profile.exp_points || 0,
+            xpToNextLevel: xpToNextLevel,
+          });
+        }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
+    
     fetchUserData();
   }, []);
+
 
   // Activity updates/notifications with game-like events
   const [notifications] = useState([
