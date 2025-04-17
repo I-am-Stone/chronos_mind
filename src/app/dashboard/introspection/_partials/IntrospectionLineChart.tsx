@@ -1,3 +1,6 @@
+"use client";
+import {useEffect, useState} from "react";
+import ge from "./IntrospectionLineChart";
 import React from 'react';
 import { Line, Radar } from 'react-chartjs-2';
 import { TabsContent } from '@/components/ui/tabs';
@@ -140,6 +143,8 @@ const weeklyData: WeeklyMetric[] = [
 
 const IntrospectionWeeklyMetricsChart: React.FC = () => {
   const labels = weeklyData.map((data) => `Week ${data.week}`);
+
+
 
   const lineData = {
     labels,

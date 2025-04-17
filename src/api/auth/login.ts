@@ -6,17 +6,17 @@ interface User {
     password: string;
 }
 
-interface LoginResponse {
-    token: string;
-    user: {
-        id: string;
-        email: string;
-    };
-    error: string;
-}
+// interface LoginResponse {
+//     token: string;
+//     user: {
+//         id: string;
+//         email: string;
+//     };
+//     error: string;
+// }
 
 export const login = async (user: User) => {
-    const response = await apiLayer.post<LoginResponse>(
+    const response = await apiLayer.post(
         API_CONFIG.ENDPOINTS.LOGIN,
         user,
         false
