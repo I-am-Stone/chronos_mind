@@ -34,6 +34,6 @@ export const API_CONFIG = {
         GET_ACTIVITY:'/api/user-profile/get-activity/',
 
         //Shop
-        GET_SHOP_ITEMS:'/api/shop/get-items/',
+        GET_SHOP_ITEMS:'/api/shop/get-shop-items',
     }
 };

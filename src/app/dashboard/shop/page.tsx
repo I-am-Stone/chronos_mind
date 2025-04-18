@@ -1,19 +1,33 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import ItemCategorySection from './_partials/ItemCategorySection';
 import ItemModal from './_partials/ItemModal';
-import { marketItems, mockUserBalance, MarketItem } from './_partials/marketItems';
+import { mockUserBalance, MarketItem } from './_partials/marketItems';
 import SidebarLayout from '@/components/shared/sidebar/layout';
+import {getShopItems} from "@/api/shop/getShopItems";
 
 const Marketplace = () => {
   const [selectedItem, setSelectedItem] = useState<MarketItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userBalance, setUserBalance] = useState(mockUserBalance);
   const [inventory, setInventory] = useState<Record<string, number>>({});
+  const [shopItems, setShopItems] = useState<MarketItem[]>([]);
+
+  useEffect(() => {
+    const fetchShopItems = async () => {
+      const response = await getShopItems();
+      if (response.success && response.data){
+        console.log(response);
+        setShopItems(response.data)
+      }
+      console.log(`fetch shop items ${shopItems}`);
+    }
+    fetchShopItems();
+  }, []);
 
   // Group items by category
-  const itemsByCategory = marketItems.reduce((acc, item) => {
+  const itemsByCategory = shopItems.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
