@@ -31,6 +31,9 @@ export const API_CONFIG = {
 
         //user Profile
         GET_PROFILE:'/api/user-profile/get-profile/',
-        GET_ACTIVITY:'/api/user-profile/get-activity/'
+        GET_ACTIVITY:'/api/user-profile/get-activity/',
+
+        //Shop
+        GET_SHOP_ITEMS:'/api/shop/get-items/',
     }
 };
