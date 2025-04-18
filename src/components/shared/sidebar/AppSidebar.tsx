@@ -93,7 +93,7 @@ import Link from "next/link";
           <div className="flex items-center gap-2 px-4 py-3 mb-2 border-b border-gray-200 dark:border-gray-800">
             <Award className="h-6 w-6 text-indigo-500" />
             <div className="text-2xl font-bold font-vt323 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-              GOAL MASTER
+              Chronos Mind
             </div>
           </div>
           
