@@ -1,4 +1,5 @@
 'use client';
+import React from "react";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -143,7 +144,7 @@ const RegisterPage = () => {
         let fieldErrors: Record<string, string> = {};
 
         // Case 1: Error is an object with field names as keys
-        if (typeof error === 'object' && error !== null && !Array.isArray(error)) {
+        if (typeof error === 'object' && !Array.isArray(error)) {
             fieldErrors = error;
         }
         // Case 2: Error is a string in "field: message | field2: message2" format
@@ -354,9 +355,17 @@ const RegisterPage = () => {
                         Sign in with Google
                     </Button>
 
-                    <div className="text-center text-sm">
+                    <div className="text-center text-sm relative z-10"> {/* Added z-index to ensure it's above other elements */}
                         <span className="text-gray-600">Already have an account?</span>{' '}
-                        <Link href="/login" className="text-orange-600 hover:text-orange-700 hover:underline font-medium">
+                        <Link
+                            href="/login"
+                            className="text-orange-600 hover:text-orange-700 hover:underline font-medium inline-block py-1"
+                            onClick={(e) => {
+                                // Optional: Add logging to verify click is registered
+                                console.log(`Sign in link clicked ${e}`);
+                                // You can add additional logic here if needed
+                            }}
+                        >
                             Sign in
                         </Link>
                     </div>

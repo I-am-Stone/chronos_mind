@@ -16,7 +16,7 @@ import { getHabit } from "@/api/habit/getHabit";
 import { deleteHabit } from "@/api/habit/deleteHabit";
 import {habitComplete} from "@/api/habit/habitComplete";
 // Type definitions
-type ResetOption = 'daily' | 'weekly' | 'monthly' | 'never';
+type reset_option = 'daily' | 'weekly' | 'monthly' | 'never';
 
 type Habit = {
   id: number;
@@ -24,8 +24,8 @@ type Habit = {
   description?: string;
   completed: boolean;
   completedAt?: Date | null;
-  resetTime?: string;
-  resetOption?: ResetOption;
+  reset_time?: string;
+  reset_option?: reset_option;
 };
 
 interface ApiHabit {
@@ -34,8 +34,8 @@ interface ApiHabit {
   description?: string;
   completed?: boolean;
   completedAt?: string | null;
-  resetTime?: string;
-  resetOption?: string;
+  reset_time?: string;
+  reset_option?: string;
 }
 
 interface ApiResponse<T> {
@@ -48,8 +48,8 @@ interface ApiResponse<T> {
 interface HabitInput {
   name: string;
   description?: string;
-  resetOption?: ResetOption;
-  resetTime?: string;
+  reset_option?: reset_option;
+  reset_time?: string;
 }
 
 export function HabitTracker() {
@@ -62,12 +62,12 @@ export function HabitTracker() {
   const [habitName, setHabitName] = useState('');
   const [habitDescription, setHabitDescription] = useState('');
   const [showResetSettings, setShowResetSettings] = useState(false);
-  const [resetTime, setResetTime] = useState('');
-  const [resetOption, setResetOption] = useState<ResetOption>('daily');
+  const [reset_time, setreset_time] = useState('');
+  const [reset_option, setreset_option] = useState<reset_option>('daily');
 
   // Load habits on component mount
   useEffect(() => {
-    fetchHabits();
+    fetchHabits().then(r => console.log(r));
   }, []);
 
   // Check and reset habits at specified times
@@ -102,18 +102,18 @@ export function HabitTracker() {
 
   // Helper function to determine if a habit should be reset
   const shouldResetHabit = (habit: Habit, now: Date, currentTime: string) => {
-    if (!habit.completed || !habit.completedAt || !habit.resetOption || habit.resetOption === 'never' || !habit.resetTime) {
+    if (!habit.completed || !habit.completedAt || !habit.reset_option || habit.reset_option === 'never' || !habit.reset_time) {
       return false;
     }
 
     // Only check when the current time matches the reset time
-    if (currentTime !== habit.resetTime) {
+    if (currentTime !== habit.reset_time) {
       return false;
     }
 
     const completedAt = new Date(habit.completedAt);
 
-    switch (habit.resetOption) {
+    switch (habit.reset_option) {
       case 'daily':
         return true;
       case 'weekly':
@@ -137,8 +137,8 @@ export function HabitTracker() {
           description: habit.description || '',
           completed: habit.completed || false,
           completedAt: habit.completedAt ? new Date(habit.completedAt) : null,
-          resetTime: habit.resetTime || '',
-          resetOption: (habit.resetOption as ResetOption) || 'never'
+          reset_time: habit.reset_time || '',
+          reset_option: (habit.reset_option as reset_option) || 'never'
         }));
 
         setHabits(fetchedHabits);
@@ -168,9 +168,9 @@ export function HabitTracker() {
 
       // Add reset settings if enabled
       if (showResetSettings) {
-        habitInput.resetOption = resetOption;
-        if (resetOption !== 'never') {
-          habitInput.resetTime = resetTime || '09:00'; // Default to 9am if no time set
+        habitInput.reset_option = reset_option;
+        if (reset_option !== 'never') {
+          habitInput.reset_time = reset_time || '09:00'; // Default to 9am if no time set
         }
       }
 
@@ -187,8 +187,8 @@ export function HabitTracker() {
             description: response.data.description,
             completed: response.data.completed || false,
             completedAt: response.data.completedAt ? new Date(response.data.completedAt) : null,
-            resetTime: response.data.resetTime,
-            resetOption: response.data.resetOption as ResetOption
+            reset_time: response.data.reset_time,
+            reset_option: response.data.reset_option as reset_option
           };
         } else if (response.id) {
           // If only an ID is returned, use our local data with the returned ID
@@ -197,8 +197,8 @@ export function HabitTracker() {
             name: habitName,
             description: habitDescription,
             completed: false,
-            resetOption: showResetSettings ? resetOption : undefined,
-            resetTime: (showResetSettings && resetOption !== 'never') ? (resetTime || '09:00') : undefined
+            reset_option: showResetSettings ? reset_option : undefined,
+            reset_time: (showResetSettings && reset_option !== 'never') ? (reset_time || '09:00') : undefined
           };
         } else {
           // Fallback to our local data with the next ID
@@ -207,8 +207,8 @@ export function HabitTracker() {
             name: habitName,
             description: habitDescription,
             completed: false,
-            resetOption: showResetSettings ? resetOption : undefined,
-            resetTime: (showResetSettings && resetOption !== 'never') ? (resetTime || '09:00') : undefined
+            reset_option: showResetSettings ? reset_option : undefined,
+            reset_time: (showResetSettings && reset_option !== 'never') ? (reset_time || '09:00') : undefined
           };
         }
 
@@ -229,14 +229,14 @@ export function HabitTracker() {
     setHabitDescription('');
     setIsAdding(false);
     setShowResetSettings(false);
-    setResetTime('');
-    setResetOption('daily');
+    setreset_time('');
+    setreset_option('daily');
   };
 
   // Handle keyboard events
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleCreateHabit();
+      handleCreateHabit().then(r => console.log(r));
     } else if (e.key === 'Escape') {
       resetForm();
     }
@@ -278,16 +278,16 @@ export function HabitTracker() {
 
 
   // Update habit reset option
-  const updateHabitResetOption = (id: number, option: ResetOption) => {
+  const updateHabitreset_option = (id: number, option: reset_option) => {
     setHabits(habits.map(habit =>
-        habit.id === id ? { ...habit, resetOption: option } : habit
+        habit.id === id ? { ...habit, reset_option: option } : habit
     ));
   };
 
   // Update habit reset time
-  const updateHabitResetTime = (id: number, time: string) => {
+  const updateHabitreset_time = (id: number, time: string) => {
     setHabits(habits.map(habit =>
-        habit.id === id ? { ...habit, resetTime: time } : habit
+        habit.id === id ? { ...habit, reset_time: time } : habit
     ));
   };
 
@@ -354,10 +354,10 @@ export function HabitTracker() {
 
                         {/* Habit Controls */}
                         <div className="flex items-center">
-                          {habit.resetTime && (
+                          {habit.reset_time && (
                               <span className="text-xs text-gray-500 mr-2 flex items-center">
                         <AlarmClock className="h-3 w-3 mr-1" />
-                                {habit.resetTime}
+                                {habit.reset_time}
                       </span>
                           )}
 
@@ -372,8 +372,8 @@ export function HabitTracker() {
                               <div className="space-y-2">
                                 <Label className="text-xs">Reset schedule</Label>
                                 <Select
-                                    value={habit.resetOption || 'never'}
-                                    onValueChange={(value: ResetOption) => updateHabitResetOption(habit.id, value)}
+                                    value={habit.reset_option || 'never'}
+                                    onValueChange={(value: reset_option) => updateHabitreset_option(habit.id, value)}
                                 >
                                   <SelectTrigger className="h-8">
                                     <SelectValue placeholder="Select reset option" />
@@ -386,13 +386,13 @@ export function HabitTracker() {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              {habit.resetOption && habit.resetOption !== 'never' && (
+                              {habit.reset_option && habit.reset_option !== 'never' && (
                                   <div className="space-y-2">
                                     <Label className="text-xs">Reset time</Label>
                                     <Input
                                         type="time"
-                                        value={habit.resetTime || ''}
-                                        onChange={(e) => updateHabitResetTime(habit.id, e.target.value)}
+                                        value={habit.reset_time || ''}
+                                        onChange={(e) => updateHabitreset_time(habit.id, e.target.value)}
                                         className="h-8"
                                         placeholder="Select time"
                                     />
@@ -422,7 +422,7 @@ export function HabitTracker() {
             {isAdding ? (
                 <form onSubmit={(e) => {
                   e.preventDefault();
-                  handleCreateHabit();
+                  handleCreateHabit().then(r => console.log(r));
                 }} className="py-2 space-y-3">
                   {/* Habit Name Input */}
                   <div className="space-y-2">
@@ -466,8 +466,8 @@ export function HabitTracker() {
                         <div className="space-y-2">
                           <Label className="text-xs">Reset schedule</Label>
                           <Select
-                              value={resetOption}
-                              onValueChange={(value: ResetOption) => setResetOption(value)}
+                              value={reset_option}
+                              onValueChange={(value: reset_option) => setreset_option(value)}
                           >
                             <SelectTrigger className="h-8">
                               <SelectValue placeholder="Select reset option" />
@@ -480,13 +480,13 @@ export function HabitTracker() {
                             </SelectContent>
                           </Select>
                         </div>
-                        {resetOption !== 'never' && (
+                        {reset_option !== 'never' && (
                             <div className="space-y-2">
                               <Label className="text-xs">Reset time</Label>
                               <Input
                                   type="time"
-                                  value={resetTime}
-                                  onChange={(e) => setResetTime(e.target.value)}
+                                  value={reset_time}
+                                  onChange={(e) => setreset_time(e.target.value)}
                                   className="h-8"
                                   placeholder="Select time"
                               />

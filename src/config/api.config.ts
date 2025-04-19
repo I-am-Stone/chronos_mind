@@ -27,7 +27,7 @@ export const API_CONFIG = {
         AI_SESSION:'/api/introspection/ai-session',
         AI_SESSION_ALL:'/api/introspection/past-ai-analysis',
         INTROSPECTIONS_PROFILE:'/api/introspection/past-ai-analysis',
-        GRAPH_DATA: '/api/introspection/graph-data',
+        GRAPH_DATA: '/api/introspection/graph',
 
         //user Profile
         GET_PROFILE:'/api/user-profile/get-profile/',

@@ -5,7 +5,7 @@ import ItemCategorySection from './_partials/ItemCategorySection';
 import ItemModal from './_partials/ItemModal';
 import { mockUserBalance, MarketItem } from './_partials/marketItems';
 import SidebarLayout from '@/components/shared/sidebar/layout';
-import {getShopItems} from "@/api/shop/getShopItems";
+import { getShopItems } from "@/api/shop/getShopItems";
 
 const Marketplace = () => {
   const [selectedItem, setSelectedItem] = useState<MarketItem | null>(null);
@@ -13,25 +13,41 @@ const Marketplace = () => {
   const [userBalance, setUserBalance] = useState(mockUserBalance);
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [shopItems, setShopItems] = useState<MarketItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchShopItems = async () => {
-      const response = await getShopItems();
-      if (response.success && response.data){
-        console.log(response);
-        setShopItems(response.data)
+      try {
+        setIsLoading(true);
+        const response = await getShopItems();
+        if (response.success && response.data) {
+          setShopItems(response.data);
+        } else {
+          setError("Failed to load shop items");
+        }
+      } catch (err) {
+        setError("An error occurred while fetching shop items");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
       }
-      console.log(`fetch shop items ${shopItems}`);
-    }
-    fetchShopItems();
+    };
+
+    fetchShopItems().catch(err => {
+      setError("An error occurred while fetching shop items");
+      console.error(err);
+    });
   }, []);
 
-  // Group items by category
-  const itemsByCategory = shopItems.reduce((acc, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
+  // Group items by category with proper type annotation
+  const itemsByCategory = shopItems.reduce((acc: Record<string, MarketItem[]>, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<string, MarketItem[]>);
+  }, {});
 
   const handleItemClick = (item: MarketItem) => {
     setSelectedItem(item);
@@ -39,22 +55,19 @@ const Marketplace = () => {
   };
 
   const handlePurchase = (item: MarketItem, quantity: number) => {
-    // Mock purchase logic
     const totalCost = item.price * quantity;
-    
+
     if (userBalance.gems >= totalCost) {
-      // Update balance
       setUserBalance(prev => ({
         ...prev,
         gems: prev.gems - totalCost
       }));
-      
-      // Update inventory
+
       setInventory(prev => ({
         ...prev,
         [item.id]: (prev[item.id] || 0) + quantity
       }));
-      
+
       alert(`Successfully purchased ${quantity} ${item.name}(s)!`);
       setIsModalOpen(false);
     } else {
@@ -62,63 +75,95 @@ const Marketplace = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+        <SidebarLayout>
+          <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+            <p className="text-lg">Loading marketplace items...</p>
+          </div>
+        </SidebarLayout>
+    );
+  }
+
+  if (error) {
+    return (
+        <SidebarLayout>
+          <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+            <p className="text-lg text-red-500">{error}</p>
+          </div>
+        </SidebarLayout>
+    );
+  }
+
   return (
-    <SidebarLayout>
-    <div className="min-h-screen bg-gray-50 p-20">
-      <Head>
-        <title>Marketplace</title>
-        <meta name="description" content="Game marketplace" />
-      </Head>
+      <SidebarLayout>
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 lg:p-12">
+          <Head>
+            <title>Marketplace</title>
+            <meta name="description" content="Game marketplace" />
+          </Head>
 
-      
-      <main className="container mx-auto py-6 px-4">
-        {/* Special Equipment Section */}
-        <ItemCategorySection 
-          title="Equipment"
-          items={itemsByCategory['Equipment'] || []}
-          layout="grid-cols-8"
-          onItemClick={handleItemClick}
-          showAll={false}
-          inventory={inventory}
-        />
+          <main className="container mx-auto py-6 px-4">
+            <div className="mb-6 flex justify-end">
+              <div className="bg-white p-3 rounded-md shadow">
+                <span className="font-medium">Your Gems:</span> {userBalance.gems}
+              </div>
+            </div>
 
-        <div className="border-b my-6"></div>
+            {itemsByCategory['Equipment'] && itemsByCategory['Equipment'].length > 0 && (
+                <ItemCategorySection
+                    title="Equipment"
+                    items={itemsByCategory['Equipment']}
+                    layout="grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8"
+                    onItemClick={handleItemClick}
+                    showAll={false}
+                    inventory={inventory}
+                />
+            )}
 
-        {/* Basic Items Section */}
-        <ItemCategorySection 
-          title="Basic"
-          items={itemsByCategory['Basic'] || []}
-          layout="grid-cols-4"
-          onItemClick={handleItemClick}
-          inventory={inventory}
-        />
+            <div className="border-b my-6"></div>
 
-        {/* Other Categories */}
-        {Object.keys(itemsByCategory)
-          .filter(category => !['Equipment', 'Basic'].includes(category))
-          .map(category => (
-            <ItemCategorySection
-              key={category}
-              title={category}
-              items={itemsByCategory[category]}
-              layout="grid-cols-4"
-              onItemClick={handleItemClick}
-              inventory={inventory}
-            />
-          ))}
-      </main>
+            {itemsByCategory['Basic'] && itemsByCategory['Basic'].length > 0 && (
+                <ItemCategorySection
+                    title="Basic"
+                    items={itemsByCategory['Basic']}
+                    layout="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                    onItemClick={handleItemClick}
+                    inventory={inventory}
+                />
+            )}
 
-      {isModalOpen && selectedItem && (
-        <ItemModal 
-          item={selectedItem}
-          onClose={() => setIsModalOpen(false)}
-          onPurchase={handlePurchase}
-          userBalance={userBalance}
-          ownedCount={inventory[selectedItem.id] || 0}
-        />
-      )}
-    </div>
-    </SidebarLayout>
+            {Object.keys(itemsByCategory)
+                .filter(category => !['Equipment', 'Basic'].includes(category))
+                .map(category => (
+                    <ItemCategorySection
+                        key={category}
+                        title={category}
+                        items={itemsByCategory[category]}
+                        layout="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                        onItemClick={handleItemClick}
+                        inventory={inventory}
+                    />
+                ))}
+
+            {shopItems.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No items available in the marketplace</p>
+                </div>
+            )}
+          </main>
+
+          {isModalOpen && selectedItem && (
+              <ItemModal
+                  item={selectedItem}
+                  onClose={() => setIsModalOpen(false)}
+                  onPurchase={handlePurchase}
+                  userBalance={userBalance}
+                  ownedCount={inventory[selectedItem.id] || 0}
+              />
+          )}
+        </div>
+      </SidebarLayout>
   );
 };
 

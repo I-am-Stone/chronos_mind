@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bot, CheckCircle, Lightbulb, RefreshCw, Clock, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface APIResponse {
   success: boolean;
-  data: {
+  data?: {
     ai_analysis: {
       overall: string;
       emotional_state_evaluation: string;
@@ -32,7 +32,7 @@ interface APIResponse {
   statusCode: number;
   created_at?: string;
   id?: string | number;
-  // Add fields that may be present in past analyses format
+  // Legacy fields for older analyses
   overall_response?: string;
   emotional_evaluation?: string;
   cognitive_evaluation?: string;
@@ -63,27 +63,63 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
   const [viewingPastAnalyses, setViewingPastAnalyses] = useState(false);
   const [currentPastAnalysisIndex, setCurrentPastAnalysisIndex] = useState(0);
   const [loadingPastAnalyses, setLoadingPastAnalyses] = useState(false);
-  const [pastAnalysesLoaded, setPastAnalysesLoaded] = useState(false);
   const [formattedPastAnalyses, setFormattedPastAnalyses] = useState<APIResponse[]>([]);
 
   // Convert object properties to array and filter out empty/NA values
-  const objectToArray = (obj: { [key: string]: string } | undefined): string[] => {
+  const objectToArray = useCallback((obj: { [key: string]: string } | undefined): string[] => {
     if (!obj) return [];
-    return Object.values(obj)
-        .filter(val =>
+    return Object.entries(obj)
+        .filter(([_, val]) =>
             val !== undefined &&
             val !== '' &&
             val !== 'N/A' &&
             !val.includes('No further') &&
             !val.includes('cannot be identified')
-        );
-  };
+        )
+        .map(([_, val]) => val);
+  }, []);
+
+  // Helper function to ensure object structure
+  const convertToObject = useCallback((data: any): { [key: string]: string } => {
+    if (!data) return {};
+    if (typeof data === 'string') return { '1': data };
+    if (Array.isArray(data)) {
+      return data.reduce((acc, item, index) => {
+        if (item) acc[String(index + 1)] = item;
+        return acc;
+      }, {} as { [key: string]: string });
+    }
+    return data;
+  }, []);
+
+  // Format analysis data consistently
+  const formatAnalysis = useCallback((analysis: APIResponse): APIResponse => {
+    if (analysis.data?.ai_analysis) {
+      return analysis;
+    }
+
+    return {
+      ...analysis,
+      data: {
+        ai_analysis: {
+          overall: analysis.overall_response || '',
+          emotional_state_evaluation: analysis.emotional_evaluation || '',
+          cognitive_functioning_evaluation: analysis.cognitive_evaluation || '',
+          Strengths: convertToObject(analysis.strengths),
+          areas_for_improvement: convertToObject(analysis.areas_for_improvement),
+          Recommendations: convertToObject(analysis.recommendations),
+          factors_influence: convertToObject(analysis.influencing_factors),
+          conclusion: analysis.conclusion || ''
+        }
+      }
+    };
+  }, [convertToObject]);
 
   // Safely extract analysis data with fallbacks
-  const getAnalysisData = (analysis: APIResponse | null) => {
-    if (!analysis || !analysis.success || !analysis.data || !analysis.data.ai_analysis) {
+  const getAnalysisData = useCallback((analysis: APIResponse | null) => {
+    if (!analysis) {
       return {
-        overall: 'No overall assessment available',
+        overall: 'No analysis data available',
         emotionalEvaluation: 'No emotional evaluation available',
         cognitiveEvaluation: 'No cognitive evaluation available',
         strengths: [] as string[],
@@ -96,115 +132,63 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
       };
     }
 
-    const aiAnalysis = analysis.data.ai_analysis;
+    const formatted = formatAnalysis(analysis);
+    const aiAnalysis = formatted.data?.ai_analysis;
 
     return {
-      overall: aiAnalysis.overall || 'No overall assessment available',
-      emotionalEvaluation: aiAnalysis.emotional_state_evaluation || 'No emotional evaluation available',
-      cognitiveEvaluation: aiAnalysis.cognitive_functioning_evaluation || 'No cognitive evaluation available',
-      strengths: objectToArray(aiAnalysis.Strengths),
-      areasForImprovement: objectToArray(aiAnalysis.areas_for_improvement),
-      recommendations: objectToArray(aiAnalysis.Recommendations),
-      factorsInfluence: objectToArray(aiAnalysis.factors_influence),
-      conclusion: aiAnalysis.conclusion || 'No conclusion available',
-      createdAt: analysis.created_at || new Date().toLocaleString(),
-      id: analysis.id || null
+      overall: aiAnalysis?.overall || 'No overall assessment available',
+      emotionalEvaluation: aiAnalysis?.emotional_state_evaluation || 'No emotional evaluation available',
+      cognitiveEvaluation: aiAnalysis?.cognitive_functioning_evaluation || 'No cognitive evaluation available',
+      strengths: objectToArray(aiAnalysis?.Strengths),
+      areasForImprovement: objectToArray(aiAnalysis?.areas_for_improvement),
+      recommendations: objectToArray(aiAnalysis?.Recommendations),
+      factorsInfluence: objectToArray(aiAnalysis?.factors_influence),
+      conclusion: aiAnalysis?.conclusion || 'No conclusion available',
+      createdAt: formatted.created_at || new Date().toLocaleString(),
+      id: formatted.id || null
     };
-  };
-
-  // Helper function to ensure object structure
-  const convertToObject = (data: any): { [key: string]: string } => {
-    if (typeof data === 'string') {
-      return { '1': data };
-    }
-    if (Array.isArray(data)) {
-      return data.reduce((acc, item, index) => {
-        acc[String(index + 1)] = item;
-        return acc;
-      }, {} as { [key: string]: string });
-    }
-    return data || {};
-  };
+  }, [formatAnalysis, objectToArray]);
 
   // Process and format past analyses when they change
   useEffect(() => {
     if (pastAnalyses && pastAnalyses.length > 0) {
-      // Format the past analyses to match expected structure
-      const formatted = pastAnalyses.map(item => {
-        if (item.data && item.data.ai_analysis) {
-          // Already in the correct format
-          return item;
-        } else {
-          // Convert from backend format to component format
-          return {
-            success: true,
-            data: {
-              ai_analysis: {
-                overall: item.overall_response || '',
-                emotional_state_evaluation: item.emotional_evaluation || '',
-                cognitive_functioning_evaluation: item.cognitive_evaluation || '',
-                Strengths: convertToObject(item.strengths || {}),
-                areas_for_improvement: convertToObject(item.areas_for_improvement || {}),
-                Recommendations: convertToObject(item.recommendations || {}),
-                factors_influence: convertToObject(item.influencing_factors || {}),
-                conclusion: item.conclusion || ''
-              }
-            },
-            statusCode: 200,
-            created_at: item.created_at || new Date().toLocaleString(),
-            id: item.id
-          };
-        }
-      });
-
+      const formatted = pastAnalyses.map(formatAnalysis);
       setFormattedPastAnalyses(formatted);
-      console.log("Formatted past analyses:", formatted);
+    } else {
+      setFormattedPastAnalyses([]);
     }
-  }, [pastAnalyses]);
+  }, [pastAnalyses, formatAnalysis]);
 
   // Handle fetching past analyses
-  const handleViewPastAnalyses = async () => {
+  const handleViewPastAnalyses = useCallback(async () => {
     try {
       setLoadingPastAnalyses(true);
+      await onFetchPastAnalyses();
 
-      // Only fetch past analyses if we haven't already loaded them
-      if (!pastAnalysesLoaded) {
-        await onFetchPastAnalyses();
-      }
-
-      console.log("Past analyses available:", pastAnalyses.length);
-
-      if (formattedPastAnalyses.length > 0) {
+      if (pastAnalyses.length > 0) {
         setViewingPastAnalyses(true);
         setCurrentPastAnalysisIndex(0);
-        setPastAnalysesLoaded(true);
-      } else {
-        console.log("No past analyses available");
       }
     } catch (err) {
       console.error("Error fetching past analyses:", err);
     } finally {
       setLoadingPastAnalyses(false);
     }
-  };
+  }, [onFetchPastAnalyses, pastAnalyses.length]);
 
   // Handle returning to current analysis
-  const handleReturnToCurrent = () => {
+  const handleReturnToCurrent = useCallback(() => {
     setViewingPastAnalyses(false);
-  };
+  }, []);
 
   // Navigation for past analyses
-  const handlePreviousAnalysis = () => {
-    if (currentPastAnalysisIndex > 0) {
-      setCurrentPastAnalysisIndex(currentPastAnalysisIndex - 1);
-    }
-  };
+  const handlePreviousAnalysis = useCallback(() => {
+    setCurrentPastAnalysisIndex(prev => Math.max(0, prev - 1));
+  }, []);
 
-  const handleNextAnalysis = () => {
-    if (currentPastAnalysisIndex < formattedPastAnalyses.length - 1) {
-      setCurrentPastAnalysisIndex(currentPastAnalysisIndex + 1);
-    }
-  };
+  const handleNextAnalysis = useCallback(() => {
+    setCurrentPastAnalysisIndex(prev => Math.min(formattedPastAnalyses.length - 1, prev + 1));
+  }, [formattedPastAnalyses.length]);
 
   // Determine which analysis to display
   const displayedAnalysis = viewingPastAnalyses && formattedPastAnalyses.length > 0
@@ -214,14 +198,14 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
   const analysisData = getAnalysisData(displayedAnalysis);
 
   // Format date for display
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleString();
     } catch (e) {
       return dateString;
     }
-  };
+  }, []);
 
   return (
       <TabsContent value="analysis">
@@ -309,7 +293,7 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
           )}
 
           {/* Empty state when no analysis is available */}
-          {(!displayedAnalysis || !displayedAnalysis.success) && !isLoading && !loadingPastAnalyses && !error && (
+          {!displayedAnalysis && !isLoading && !loadingPastAnalyses && !error && (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
                 <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 mb-6">
@@ -482,9 +466,6 @@ const IntrospectionAnalysis: React.FC<IntrospectionAnalysisProps> = ({
                           Return to Current
                         </Button>
                     )}
-                    <Button className="bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors">
-                      Apply Recommendations
-                    </Button>
                   </div>
                 </CardFooter>
               </Card>

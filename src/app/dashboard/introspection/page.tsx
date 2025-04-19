@@ -102,12 +102,6 @@ interface PastAnalysisItem {
   user: number;
 }
 
-interface PastAnalysisResponse {
-  success: boolean;
-  data: PastAnalysisItem[];
-  statusCode: number;
-}
-
 const calculateCognitiveAvg = (session: HistorySession): number => {
   const { working_memory, processing_speed, attentional_control, cognitive_flexibility, metacognition } = session;
   return (working_memory + processing_speed + attentional_control + cognitive_flexibility + metacognition) / 5;
@@ -128,9 +122,8 @@ const IntrospectionSection = () => {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>('session');
   const [pastAnalyses, setPastAnalyses] = useState<AIAnalysisResponse[]>([]);
-  const [isPastAnalysisLoading, setIsPastAnalysisLoading] = useState(false);
 
-  const [sessionData, setSessionData] = useState<SessionData>({
+  const [sessionData] = useState<SessionData>({
     cognitiveMetrics: {
       working_memory: 5,
       processing_speed: 6,
@@ -190,14 +183,6 @@ const IntrospectionSection = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Update session data
-  const handleSessionDataChange = (newData: Partial<SessionData>) => {
-    setSessionData(prevData => ({
-      ...prevData,
-      ...newData
-    }));
-  };
-
   const fetchCurrentAnalysis = async () => {
     try {
       setIsAnalysisLoading(true);
@@ -237,7 +222,7 @@ const IntrospectionSection = () => {
       }
 
       console.log("Setting analysis state with:", response);
-      setAnalysis(response);
+      setAnalysis(response.data);
     } catch (error) {
       console.error("Exception occurred during analysis fetch:", error);
       setAnalysisError(`Failed to load analysis: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -248,14 +233,14 @@ const IntrospectionSection = () => {
 
   const fetchPastAnalyses = async () => {
     try {
-      setIsPastAnalysisLoading(true);
-      const response = await getPastAnalysis() as PastAnalysisResponse;
+      const response = await getPastAnalysis();
 
       console.log("Past analyses response:", response);
 
       if (response && response.data) {
-        // Process the data to match the expected structure
-        const formattedPastAnalyses = response.data.map((item: PastAnalysisItem) => ({
+        const response_data = response.data
+        // @ts-ignore
+        const formattedPastAnalyses = response_data.map((item: PastAnalysisItem) => ({
           success: true,
           data: {
             ai_analysis: {
@@ -282,8 +267,6 @@ const IntrospectionSection = () => {
     } catch (error) {
       console.error("Exception occurred during past analysis fetch:", error);
       setAnalysisError(`Failed to load past analyses: ${error instanceof Error ? error.message : "Unknown error"}`);
-    } finally {
-      setIsPastAnalysisLoading(false);
     }
   };
 
@@ -342,7 +325,7 @@ const IntrospectionSection = () => {
             </motion.div>
           </div>
         </div>
-        <div className="p-6 md:p-8 max-w-5xl mx-auto">
+        <div className="p-4 md:p-6 max-w-5xl mx-auto">
           <div className="bg-white text-black rounded-xl shadow-lg overflow-hidden border border-gray-200">
             <Tabs defaultValue="session" className="w-full">
               <div className="px-6 pb-4">

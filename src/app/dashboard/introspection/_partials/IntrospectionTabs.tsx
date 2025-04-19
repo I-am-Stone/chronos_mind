@@ -12,10 +12,10 @@ interface IntrospectionTabsProps {
 
 const IntrospectionTabs: React.FC<IntrospectionTabsProps> = ({ activeTab, onTabChange }) => {
   return (
-    <TabsList className="grid grid-cols-4 bg-blue-800/30 rounded-md p-1"> {/* Changed to grid-cols-4 */}
+    <TabsList className="grid grid-cols-4 "> {/* Changed to grid-cols-4 */}
       <TabsTrigger 
         value="session" 
-        className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md"
+        className=""
         onClick={() => onTabChange('session')
 
       }
@@ -24,21 +24,21 @@ const IntrospectionTabs: React.FC<IntrospectionTabsProps> = ({ activeTab, onTabC
       </TabsTrigger>
       <TabsTrigger 
         value="history" 
-        className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md"
+        className=""
         onClick={() => onTabChange('history')}
       >
         <History className="mr-2 h-4 w-4" /> History
       </TabsTrigger>
       <TabsTrigger 
         value="analysis" 
-        className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md"
+        className=""
         onClick={() => onTabChange('analysis')}
       >
         <Bot className="mr-2 h-4 w-4" /> AI Analysis
       </TabsTrigger>
       <TabsTrigger
         value="charts" // Fixed value prop
-        className="data-[state=active]:bg-white data-[state=active]:text-blue-600 py-2 rounded-md"
+        className=""
         onClick={() => onTabChange('charts')}
       >
         <BarChart className="mr-2 h-4 w-4" /> Introspection charts {/* Changed icon */}

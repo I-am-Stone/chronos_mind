@@ -21,7 +21,7 @@ const ItemModal: React.FC<ItemModalProps> = ({
   const [quantity, setQuantity] = useState(1);
 
   const increaseQuantity = () => {
-    if (quantity < item.available) {
+    if (quantity < item.quantity) {
       setQuantity(quantity + 1);
     }
   };
@@ -67,7 +67,7 @@ const ItemModal: React.FC<ItemModalProps> = ({
               quantity={quantity}
               onIncrease={increaseQuantity}
               onDecrease={decreaseQuantity}
-              maxQuantity={item.available}
+              maxQuantity={item.quantity}
             />
           </div>
           

@@ -3,7 +3,7 @@ import ApiLayer from "@/api/apiLayer";
 
 
 
-export  const getPastAnalysis = async () => {
+export  const getIntrospectionGraphData = async () => {
     const response = ApiLayer.request(
         API_CONFIG.ENDPOINTS.GRAPH_DATA,
         "GET",

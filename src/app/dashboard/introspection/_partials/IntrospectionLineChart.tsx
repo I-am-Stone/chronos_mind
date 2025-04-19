@@ -1,6 +1,5 @@
 "use client";
-import {useEffect, useState} from "react";
-import ge from "./IntrospectionLineChart";
+import { useEffect, useState } from "react";
 import React from 'react';
 import { Line, Radar } from 'react-chartjs-2';
 import { TabsContent } from '@/components/ui/tabs';
@@ -33,168 +32,155 @@ ChartJS.register(
     RadarController
 );
 
-// Define the structure of weekly data
-interface WeeklyMetric {
-  week: number;
-  date: string;
-  timestamp: string;
-  cognitive: {
-    working_memory: number;
-    processing_speed: number;
-    attentional_control: number;
-    cognitive_flexibility: number;
-    metacognition: number;
+// Define interface for backend response
+interface BackendResponse {
+  average_metrics: {
+    working_memory__avg: number;
+    processing_speed__avg: number;
+    attentional_control__avg: number;
+    cognitive_flexibility__avg: number;
+    metacognition__avg: number;
+    emotional_valence__avg: number;
+    emotional_arousal__avg: number;
+    emotional_regulation__avg: number;
+    observations: string;
+    environmental_factors: string;
+    physical_state: string;
   };
-  emotional: {
-    emotional_valence: number;
-    emotional_arousal: number;
-    emotional_regulation: number;
+  graph_data: {
+    working_memory: number[];
+    processing_speed: number[];
+    attentional_control: number[];
+    cognitive_flexibility: number[];
+    metacognition: number[];
+    emotional_valence: number[];
+    emotional_arousal: number[];
+    emotional_regulation: number[];
+    timestamp: string[];
   };
 }
 
-// Dummy weekly data
-const weeklyData: WeeklyMetric[] = [
-  {
-    week: 5,
-    date: '2025-04-01',
-    timestamp: '2025-04-01T10:00:00Z',
-    cognitive: {
-      working_memory: 75,
-      processing_speed: 80,
-      attentional_control: 70,
-      cognitive_flexibility: 65,
-      metacognition: 78,
-    },
-    emotional: {
-      emotional_valence: 72,
-      emotional_arousal: 68,
-      emotional_regulation: 74,
-    },
-  },
-  {
-    week: 4,
-    date: '2025-03-25',
-    timestamp: '2025-03-25T10:00:00Z',
-    cognitive: {
-      working_memory: 72,
-      processing_speed: 78,
-      attentional_control: 66,
-      cognitive_flexibility: 60,
-      metacognition: 74,
-    },
-    emotional: {
-      emotional_valence: 70,
-      emotional_arousal: 66,
-      emotional_regulation: 72,
-    },
-  },
-  {
-    week: 3,
-    date: '2025-03-18',
-    timestamp: '2025-03-18T10:00:00Z',
-    cognitive: {
-      working_memory: 70,
-      processing_speed: 76,
-      attentional_control: 64,
-      cognitive_flexibility: 58,
-      metacognition: 71,
-    },
-    emotional: {
-      emotional_valence: 68,
-      emotional_arousal: 64,
-      emotional_regulation: 70,
-    },
-  },
-  {
-    week: 2,
-    date: '2025-03-11',
-    timestamp: '2025-03-11T10:00:00Z',
-    cognitive: {
-      working_memory: 68,
-      processing_speed: 73,
-      attentional_control: 62,
-      cognitive_flexibility: 56,
-      metacognition: 69,
-    },
-    emotional: {
-      emotional_valence: 66,
-      emotional_arousal: 62,
-      emotional_regulation: 68,
-    },
-  },
-  {
-    week: 1,
-    date: '2025-03-04',
-    timestamp: '2025-03-04T10:00:00Z',
-    cognitive: {
-      working_memory: 65,
-      processing_speed: 70,
-      attentional_control: 60,
-      cognitive_flexibility: 55,
-      metacognition: 66,
-    },
-    emotional: {
-      emotional_valence: 64,
-      emotional_arousal: 60,
-      emotional_regulation: 66,
-    },
-  },
-];
-
 const IntrospectionWeeklyMetricsChart: React.FC = () => {
-  const labels = weeklyData.map((data) => `Week ${data.week}`);
+  const [data, setData] = useState<BackendResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchGraphData = async () => {
+      try {
+        // In a real implementation, this would be an actual API call
+        // For demonstration, we'll use the provided JSON data
+        const mockResponse = {
+          average_metrics: {
+            working_memory__avg: 7.5,
+            processing_speed__avg: 9.5,
+            attentional_control__avg: 7.5,
+            cognitive_flexibility__avg: 8,
+            metacognition__avg: 7.5,
+            emotional_valence__avg: 7,
+            emotional_arousal__avg: 7.5,
+            emotional_regulation__avg: 8.5,
+            observations: "nindra",
+            environmental_factors: "moise",
+            physical_state: "bored"
+          },
+          graph_data: {
+            working_memory: [7.5, 7.2, 7.0, 6.8, 6.5],
+            processing_speed: [9.5, 9.2, 9.0, 8.7, 8.4],
+            attentional_control: [7.5, 7.3, 7.1, 6.9, 6.7],
+            cognitive_flexibility: [8.0, 7.8, 7.6, 7.4, 7.2],
+            metacognition: [7.5, 7.3, 7.1, 6.9, 6.7],
+            emotional_valence: [7.0, 6.8, 6.6, 6.4, 6.2],
+            emotional_arousal: [7.5, 7.3, 7.1, 6.9, 6.7],
+            emotional_regulation: [8.5, 8.3, 8.1, 7.9, 7.7],
+            timestamp: [
+              "2025-04-19T05:25:56.997653Z",
+              "2025-04-12T05:25:56.997653Z",
+              "2025-04-05T05:25:56.997653Z",
+              "2025-03-29T05:25:56.997653Z",
+              "2025-03-22T05:25:56.997653Z"
+            ]
+          }
+        };
 
+        setData(mockResponse);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch data");
+        setLoading(false);
+      }
+    };
+
+    fetchGraphData();
+  }, []);
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-64">Loading metrics data...</div>;
+  }
+
+  if (error || !data) {
+    return <div className="flex justify-center items-center h-64 text-red-500">Error loading metrics data</div>;
+  }
+
+  // Format dates for labels
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
+  // Generate labels from timestamps
+  const labels = data.graph_data.timestamp.map(formatDate);
 
   const lineData = {
     labels,
     datasets: [
       {
         label: 'Working Memory',
-        data: weeklyData.map((data) => data.cognitive.working_memory),
+        data: data.graph_data.working_memory,
         borderColor: 'rgb(75, 192, 192)',
         tension: 0.1,
       },
       {
         label: 'Processing Speed',
-        data: weeklyData.map((data) => data.cognitive.processing_speed),
+        data: data.graph_data.processing_speed,
         borderColor: 'rgb(54, 162, 235)',
         tension: 0.1,
       },
       {
         label: 'Attentional Control',
-        data: weeklyData.map((data) => data.cognitive.attentional_control),
+        data: data.graph_data.attentional_control,
         borderColor: 'rgb(153, 102, 255)',
         tension: 0.1,
       },
       {
         label: 'Cognitive Flexibility',
-        data: weeklyData.map((data) => data.cognitive.cognitive_flexibility),
+        data: data.graph_data.cognitive_flexibility,
         borderColor: 'rgb(255, 159, 64)',
         tension: 0.1,
       },
       {
         label: 'Metacognition',
-        data: weeklyData.map((data) => data.cognitive.metacognition),
+        data: data.graph_data.metacognition,
         borderColor: 'rgb(255, 99, 132)',
         tension: 0.1,
       },
       {
         label: 'Emotional Valence',
-        data: weeklyData.map((data) => data.emotional.emotional_valence),
+        data: data.graph_data.emotional_valence,
         borderColor: 'rgb(255, 205, 86)',
         tension: 0.1,
       },
       {
         label: 'Emotional Arousal',
-        data: weeklyData.map((data) => data.emotional.emotional_arousal),
+        data: data.graph_data.emotional_arousal,
         borderColor: 'rgb(201, 203, 207)',
         tension: 0.1,
       },
       {
         label: 'Emotional Regulation',
-        data: weeklyData.map((data) => data.emotional.emotional_regulation),
+        data: data.graph_data.emotional_regulation,
         borderColor: 'rgb(75, 192, 192)',
+        borderDash: [5, 5], // Add dashed line to differentiate from Working Memory
         tension: 0.1,
       },
     ],
@@ -214,17 +200,16 @@ const IntrospectionWeeklyMetricsChart: React.FC = () => {
     scales: {
       y: {
         min: 0,
-        max: 100,
+        max: 10, // Adjust max since data is on a 0-10 scale
         title: {
           display: true,
-          text: 'Score (0-100)',
+          text: 'Score (0-10)',
         },
       },
     },
   };
 
-  const latest = weeklyData[0]; // Most recent week
-
+  // Use average_metrics for the snapshot radar chart
   const radarData = {
     labels: [
       'Working Memory',
@@ -240,14 +225,14 @@ const IntrospectionWeeklyMetricsChart: React.FC = () => {
       {
         label: 'Current Metrics Snapshot',
         data: [
-          latest.cognitive.working_memory,
-          latest.cognitive.processing_speed,
-          latest.cognitive.attentional_control,
-          latest.cognitive.cognitive_flexibility,
-          latest.cognitive.metacognition,
-          latest.emotional.emotional_valence,
-          latest.emotional.emotional_arousal,
-          latest.emotional.emotional_regulation,
+          data.average_metrics.working_memory__avg,
+          data.average_metrics.processing_speed__avg,
+          data.average_metrics.attentional_control__avg,
+          data.average_metrics.cognitive_flexibility__avg,
+          data.average_metrics.metacognition__avg,
+          data.average_metrics.emotional_valence__avg,
+          data.average_metrics.emotional_arousal__avg,
+          data.average_metrics.emotional_regulation__avg,
         ],
         backgroundColor: 'rgba(136, 132, 216, 0.4)',
         borderColor: 'rgba(136, 132, 216, 1)',
@@ -262,9 +247,9 @@ const IntrospectionWeeklyMetricsChart: React.FC = () => {
     scales: {
       r: {
         min: 0,
-        max: 100,
+        max: 10, // Adjust max since data is on a 0-10 scale
         ticks: {
-          stepSize: 20,
+          stepSize: 2,
         },
         pointLabels: {
           font: {
@@ -280,18 +265,50 @@ const IntrospectionWeeklyMetricsChart: React.FC = () => {
     },
   };
 
+  // Format current date for display
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+
   return (
       <TabsContent value="charts">
         <div className="space-y-6">
-          <div style={{ width: '800px', height: '500px', margin: '0 auto' }}>
-            <Line options={lineOptions} data={lineData} />
+          <div className="bg-white p-4 rounded-lg shadow w-full mx-auto">
+            <h2 className="text-xl font-medium mb-2">Weekly Metrics Trend</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Tracking your metrics over time
+            </p>
+            <div style={{ height: '400px' }}>
+              <Line options={lineOptions} data={lineData} />
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow h-[500px] w-full max-w-4xl mx-auto">
+
+          <div className="bg-white p-4 rounded-lg shadow w-full mx-auto">
             <h2 className="text-xl font-medium mb-2">Current Metrics Snapshot</h2>
             <p className="text-sm text-gray-600 mb-4">
-              {latest.timestamp} ({latest.date})
+              {currentDate} | Environmental Factors: {data.average_metrics.environmental_factors} |
+              Physical State: {data.average_metrics.physical_state}
             </p>
-            <Radar options={radarOptions} data={radarData} />
+            <div className="flex">
+              <div className="w-1/2">
+                <div style={{ height: '400px' }}>
+                  <Radar options={radarOptions} data={radarData} />
+                </div>
+              </div>
+              <div className="w-1/2 p-4">
+                <h3 className="text-lg font-medium mb-3">Observations</h3>
+                <p className="text-gray-700">{data.average_metrics.observations}</p>
+
+                <h3 className="text-lg font-medium mt-6 mb-3">Metrics Summary</h3>
+                <ul className="space-y-2">
+                  <li><span className="font-medium">Processing Speed:</span> {data.average_metrics.processing_speed__avg}/10 - Highest scoring metric</li>
+                  <li><span className="font-medium">Emotional Regulation:</span> {data.average_metrics.emotional_regulation__avg}/10 - Strong emotional control</li>
+                  <li><span className="font-medium">Emotional Valence:</span> {data.average_metrics.emotional_valence__avg}/10 - Lowest scoring metric</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </TabsContent>
