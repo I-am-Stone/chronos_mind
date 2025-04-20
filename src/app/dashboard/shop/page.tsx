@@ -6,6 +6,7 @@ import ItemModal from './_partials/ItemModal';
 import { mockUserBalance, MarketItem } from './_partials/marketItems';
 import SidebarLayout from '@/components/shared/sidebar/layout';
 import { getShopItems } from "@/api/shop/getShopItems";
+import {motion} from "framer-motion";
 
 const Marketplace = () => {
   const [selectedItem, setSelectedItem] = useState<MarketItem | null>(null);
@@ -97,12 +98,25 @@ const Marketplace = () => {
 
   return (
       <SidebarLayout>
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8 lg:p-12">
-          <Head>
-            <title>Marketplace</title>
-            <meta name="description" content="Game marketplace" />
-          </Head>
 
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+          <div className="max-w-6xl mx-auto px-6 py-12">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center"
+            >
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Market Place
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">
+                Market Place for Collecting Artefact
+              </p>
+            </motion.div>
+          </div>
+        </div>
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 lg:p-12">
           <main className="container mx-auto py-6 px-4">
             <div className="mb-6 flex justify-end">
               <div className="bg-white p-3 rounded-md shadow">
