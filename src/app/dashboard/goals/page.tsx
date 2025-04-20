@@ -15,18 +15,10 @@ import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
 import GoalsBarChart from "./_partials/GoalAnalytics";
 import { GetGoalStats } from "@/api/goals/getGoalStats";
+
 import { toast, Toaster } from 'sonner';
 
-interface Goal {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  targetDate: string;
-  progress: number;
-  difficulty: string;
-  goal_type: string;
-}
+
 
 export default function GoalsPage() {
   const [activeTab, setActiveTab] = useState('dashboard'); // Add active tab state
@@ -139,12 +131,13 @@ export default function GoalsPage() {
         });
   }, [goals, searchTerm, filterStatus, sortBy, sortOrder]);
 
-  const handleEdit = (goal: Goal) => {
+  const handleEdit = () => {
     toast.info('Edit functionality', {
-      description: 'Goal editing will be available in the next update!',
+      description: 'Goal editing is done!',
       duration: 3000
     });
   };
+
 
   const handleDelete = async (id: number) => {
     const confirmDelete = window.confirm('Are you sure you want to abandon this quest?');

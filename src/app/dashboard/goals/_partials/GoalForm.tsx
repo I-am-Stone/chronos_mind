@@ -29,7 +29,7 @@ export function GoalForm({ onGoalCreated }: GoalFormProps) {
 
   const goalType = [
     { level: 'personal', color: 'bg-sky-500' },
-    { level: 'Professional', color: 'bg-orange-500' },
+    { level: 'professional', color: 'bg-orange-500' },
   ];
   const [goal_title, setTitle] = useState('');
   const [description, setDescription] = useState('');

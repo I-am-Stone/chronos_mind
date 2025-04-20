@@ -1,10 +1,7 @@
 import {API_CONFIG} from "@/config/api.config";
-import ApiLayer, {ApiResponse} from "@/api/apiLayer";
+import apiLayer from "@/api/apiLayer";
 
-interface UpdateGoalResponse {
-    success: boolean;
-    message: string;
-}
+
 
 interface goal {
     goal_title: string;
@@ -14,11 +11,10 @@ interface goal {
 }
 
 export const updateGoal = async (goalId: number, goal: goal) => {
-    const response:ApiResponse<UpdateGoalResponse> = await ApiLayer.request(
+    return await apiLayer.request(
         API_CONFIG.ENDPOINTS.UPDATE_GOAL.replace('{goal_id}', goalId.toString()),
         "PUT",
         goal,
         true
     );
-    return response;
 }

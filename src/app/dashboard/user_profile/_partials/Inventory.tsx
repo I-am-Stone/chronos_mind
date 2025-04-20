@@ -7,6 +7,7 @@ interface InventoryItem {
   quantity: number;
   imageUrl: string;
   category?: 'Armor' | 'Weapon' | 'wearable' | 'consumable' | 'legendary';
+  description?: string;
 }
 
 interface InventoryProps {

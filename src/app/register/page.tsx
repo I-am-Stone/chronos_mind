@@ -33,6 +33,8 @@ const RegisterPage = () => {
             newErrors.username = 'Username is required';
         } else if (formData.username.length < 3) {
             newErrors.username = 'Username must be at least 3 characters';
+        } else if (/\d/.test(formData.username)) {
+            newErrors.username = 'Username cannot contain numbers';
         }
 
         if (!formData.email.trim()) {
@@ -65,13 +67,26 @@ const RegisterPage = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
+
+        // If this is the username field, we could also prevent number entry here
+        // This provides immediate feedback while typing
+        if (id === 'username' && /\d/.test(value)) {
+            setErrors(prev => ({
+                ...prev,
+                username: 'Username cannot contain numbers'
+            }));
+            // Option: We could also prevent setting the state with numbers, but
+            // that would make the error harder to understand for users
+            // For now, we'll set the value but show the error
+        }
+
         setFormData(prev => ({
             ...prev,
             [id]: value
         }));
 
-        // Clear error when user starts typing
-        if (errors[id]) {
+        // Clear error when user starts typing (except for the number validation we just added)
+        if (errors[id] && !(id === 'username' && /\d/.test(value))) {
             setErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors[id];
@@ -248,7 +263,7 @@ const RegisterPage = () => {
                                 <Input
                                     id="username"
                                     type="text"
-                                    placeholder="Choose a username"
+                                    placeholder="Choose a username (no numbers)"
                                     className={`pl-10 border-indigo-100 focus:ring-indigo-500 ${errors.username ? 'border-red-300' : ''}`}
                                     value={formData.username}
                                     onChange={handleInputChange}
@@ -355,7 +370,7 @@ const RegisterPage = () => {
                         Sign in with Google
                     </Button>
 
-                    <div className="text-center text-sm relative z-10"> {/* Added z-index to ensure it's above other elements */}
+                    <div className="text-center text-sm relative z-10">
                         <span className="text-gray-600">Already have an account?</span>{' '}
                         <Link
                             href="/login"

@@ -116,6 +116,9 @@
   * {
     @apply border-border outline-ring/50;
   }
+  body, div, label, p {
+    @apply text-[1.3rem] leading-relaxed;
+  }
   body {
     @apply bg-background text-foreground;
   }
