@@ -176,7 +176,7 @@ export default function UserProfilePage() {
 
             <div className="mb-6">
               
-             <Inventory/>
+
             </div>
 
 
