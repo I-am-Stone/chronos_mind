@@ -2,7 +2,6 @@
 
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import Navigation from './_partial/NavigationComponent';
 import FeatureCard from './_partial/FeatureCard';
 import StepCard from './_partial/stepCard';

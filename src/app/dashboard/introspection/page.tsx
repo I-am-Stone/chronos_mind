@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { Tabs } from '@/components/ui/tabs';
 import SidebarLayout from '@/components/shared/sidebar/layout';
@@ -165,16 +164,13 @@ const IntrospectionSection = () => {
       }
     };
 
-    // Call the function and handle the promise
     fetchSessions().catch(err => {
       console.error("Unhandled promise rejection in fetchSessions:", err);
     });
   }, [refreshTrigger]);
 
-  // When tab changes to analysis, prepare the analysis section but don't fetch yet
   useEffect(() => {
     if (activeTab === 'analysis') {
-      // Reset error state when entering the analysis tab
       setAnalysisError(null);
     }
   }, [activeTab]);
@@ -187,8 +183,6 @@ const IntrospectionSection = () => {
     try {
       setIsAnalysisLoading(true);
       setAnalysisError(null);
-
-      // Clear previous analysis to ensure we're working with fresh data
       setAnalysis(null);
 
       console.log("Fetching analysis data...");
@@ -207,14 +201,12 @@ const IntrospectionSection = () => {
         return;
       }
 
-      // Check if the response has the expected structure with success property
       if (!response.success) {
         console.error("Response indicates unsuccessful operation:", response);
         setAnalysisError("Failed to load analysis: API returned unsuccessful status");
         return;
       }
 
-      // Check if the response has the expected data structure
       if (!response.data) {
         console.error("Response missing data or ai_analysis field:", response);
         setAnalysisError("Failed to load analysis: Invalid data format");
@@ -222,7 +214,7 @@ const IntrospectionSection = () => {
       }
 
       console.log("Setting analysis state with:", response);
-      setAnalysis(response.data);
+      setAnalysis(response); // Pass the full response
     } catch (error) {
       console.error("Exception occurred during analysis fetch:", error);
       setAnalysisError(`Failed to load analysis: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -234,13 +226,12 @@ const IntrospectionSection = () => {
   const fetchPastAnalyses = async () => {
     try {
       const response = await getPastAnalysis();
-
       console.log("Past analyses response:", response);
 
       if (response && response.data) {
-        const response_data = response.data
-        // @ts-ignore
-        const formattedPastAnalyses = response_data.map((item: PastAnalysisItem) => ({
+        const pastAnalysesData = Array.isArray(response.data) ? response.data : [response.data];
+        
+        const formattedPastAnalyses = pastAnalysesData.map((item: PastAnalysisItem) => ({
           success: true,
           data: {
             ai_analysis: {
@@ -260,20 +251,23 @@ const IntrospectionSection = () => {
         }));
 
         setPastAnalyses(formattedPastAnalyses);
+        return formattedPastAnalyses;
       } else {
         console.error("Failed to fetch past analyses:", response);
         setAnalysisError("Failed to load past analyses. Please try again later.");
+        return [];
       }
     } catch (error) {
       console.error("Exception occurred during past analysis fetch:", error);
       setAnalysisError(`Failed to load past analyses: ${error instanceof Error ? error.message : "Unknown error"}`);
+      return [];
     }
   };
 
   const cognitiveAvg = Object.values(sessionData.cognitiveMetrics).reduce((a, b) => a + b, 0) /
-      Object.values(sessionData.cognitiveMetrics).length;
+    Object.values(sessionData.cognitiveMetrics).length;
   const emotionalAvg = Object.values(sessionData.emotionalMetrics).reduce((a, b) => a + b, 0) /
-      Object.values(sessionData.emotionalMetrics).length;
+    Object.values(sessionData.emotionalMetrics).length;
 
   const getScoreColor = (score: number): string => {
     if (score >= 8) return "text-green-600";
@@ -283,8 +277,8 @@ const IntrospectionSection = () => {
   };
 
   const estimatedPoints = Math.round(
-      (cognitiveAvg + emotionalAvg) * 3 +
-      Math.min(sessionData.qualitativeData.observations.length, 200) / 10
+    (cognitiveAvg + emotionalAvg) * 3 +
+    Math.min(sessionData.qualitativeData.observations.length, 200) / 10
   );
 
   const refreshHistory = async () => {
@@ -307,85 +301,85 @@ const IntrospectionSection = () => {
   };
 
   return (
-      <SidebarLayout>
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
-          <div className="max-w-6xl mx-auto px-6 py-12">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="text-center"
-            >
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Mind Lab
-              </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
-                Build lasting habits with proven strategies
-              </p>
-            </motion.div>
-          </div>
+    <SidebarLayout>
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center"
+          >
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Mind Lab
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">
+              Build lasting habits with proven strategies
+            </p>
+          </motion.div>
         </div>
-        <div className="p-4 md:p-6 max-w-5xl mx-auto">
-          <div className="bg-white text-black rounded-xl shadow-lg overflow-hidden border border-gray-200">
-            <Tabs defaultValue="session" className="w-full">
-              <div className="px-6 pb-4">
-                <IntrospectionTabs activeTab={activeTab} onTabChange={setActiveTab} />
-              </div>
+      </div>
+      <div className="p-4 md:p-6 max-w-5xl mx-auto">
+        <div className="bg-white text-black rounded-xl shadow-lg overflow-hidden border border-gray-200">
+          <Tabs defaultValue="session" className="w-full">
+            <div className="px-6 pb-4">
+              <IntrospectionTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
 
-              <div className="p-6">
-                {activeTab === 'session' && (
-                    <IntrospectionSession
-                        initialData={sessionData}
-                        cognitiveAvg={cognitiveAvg}
-                        emotionalAvg={emotionalAvg}
-                        estimatedPoints={estimatedPoints}
-                        getScoreColor={getScoreColor}
-                        onSubmitSuccess={handleRefresh}
+            <div className="p-6">
+              {activeTab === 'session' && (
+                <IntrospectionSession
+                  initialData={sessionData}
+                  cognitiveAvg={cognitiveAvg}
+                  emotionalAvg={emotionalAvg}
+                  estimatedPoints={estimatedPoints}
+                  getScoreColor={getScoreColor}
+                  onSubmitSuccess={handleRefresh}
+                />
+              )}
+
+              {activeTab === 'history' && (
+                <>
+                  {isLoading && <div className="text-center py-8">Loading session history...</div>}
+                  {error && (
+                    <div className="bg-red-50 text-red-800 p-4 rounded-lg mb-4">
+                      {error}
+                      <button
+                        onClick={refreshHistory}
+                        className="ml-4 bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+                  {!isLoading && !error && (
+                    <IntrospectionHistory
+                      introspectionHistory={history}
+                      getScoreColor={getScoreColor}
                     />
-                )}
+                  )}
+                </>
+              )}
 
-                {activeTab === 'history' && (
-                    <>
-                      {isLoading && <div className="text-center py-8">Loading session history...</div>}
-                      {error && (
-                          <div className="bg-red-50 text-red-800 p-4 rounded-lg mb-4">
-                            {error}
-                            <button
-                                onClick={refreshHistory}
-                                className="ml-4 bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded"
-                            >
-                              Retry
-                            </button>
-                          </div>
-                      )}
-                      {!isLoading && !error && (
-                          <IntrospectionHistory
-                              introspectionHistory={history}
-                              getScoreColor={getScoreColor}
-                          />
-                      )}
-                    </>
-                )}
+              {activeTab === 'analysis' && (
+                <IntrospectionAnalysis
+                  currentAnalysis={analysis}
+                  isLoading={isAnalysisLoading}
+                  error={analysisError}
+                  onFetchAnalysis={fetchCurrentAnalysis}
+                  pastAnalyses={pastAnalyses}
+                  onFetchPastAnalyses={fetchPastAnalyses}
+                />
+              )}
 
-                {activeTab === 'analysis' && (
-                    <IntrospectionAnalysis
-                        currentAnalysis={analysis}
-                        isLoading={isAnalysisLoading}
-                        error={analysisError}
-                        onFetchAnalysis={fetchCurrentAnalysis}
-                        pastAnalyses={pastAnalyses}
-                        onFetchPastAnalyses={fetchPastAnalyses}
-                    />
-                )}
-
-                {activeTab === 'charts' && (
-                    <IntrospectionWeeklyMetricsChart />
-                )}
-              </div>
-            </Tabs>
-          </div>
+              {activeTab === 'charts' && (
+                <IntrospectionWeeklyMetricsChart />
+              )}
+            </div>
+          </Tabs>
         </div>
-      </SidebarLayout>
+      </div>
+    </SidebarLayout>
   );
 };
 

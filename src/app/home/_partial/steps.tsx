@@ -13,5 +13,20 @@ export const steps = [
         number: "03",
         title: "Optimize Your Well-being",
         description: "Receive personalized recommendations to improve work-life balance"
+    },
+    {
+        number: "04",
+        title: "Get Personalized Insights",
+        description: "Analyze your habits and receive insights tailored to your workflow"
+    },
+    {
+        number: "05",
+        title: "Access Performance Metrics",
+        description: "Measure your efficiency with detailed performance analytics and trends"
+    },
+    {
+        number: "06",
+        title: "Build Productive Habits",
+        description: "Create lasting routines and reinforce positive habits over time"
     }
 ];

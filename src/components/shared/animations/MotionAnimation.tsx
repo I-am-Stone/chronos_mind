@@ -2,6 +2,7 @@
 import {motion}  from "framer-motion";
 import {useEffect, useState} from "react";
 
+
 export function MotionAnimation() {
   const [isClient, setIsClient] = useState(false);
 
