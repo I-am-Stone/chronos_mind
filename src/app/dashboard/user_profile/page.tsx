@@ -6,7 +6,7 @@ import CharacterHeader from './_partials/CharacterHeader';
 import ActivityFeed from './_partials/ActivityFeed';
 import { getProfileData } from '@/api/user_profile/getProfileData';
 import { getActivityLog } from '@/api/user_profile/getActivityLog';
-
+import Inventory from './_partials/Inventory';
 // Define the level thresholds based on the backend logic
 
 
@@ -172,12 +172,13 @@ export default function UserProfilePage() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              {/* Content for stats and inventory will go here */}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              {/* Main content will go here */}
+            <div className="mb-6">
+              
+             <Inventory/>
             </div>
+
 
             <ActivityFeed notifications={activityFeed} />
           </div>

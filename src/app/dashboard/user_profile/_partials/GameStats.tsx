@@ -4,6 +4,8 @@ import { BarChart2, Shield, Trophy, Zap, Calendar } from 'lucide-react';
 
 interface GameStatsProps {
   achievements: number;
+  total_goals: number;
+  total_habits: number;
 }
 
 const GameStats: React.FC<GameStatsProps> = ({ achievements }) => {

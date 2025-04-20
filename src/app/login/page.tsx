@@ -147,7 +147,7 @@ const LoginPage = () => {
             <div className="flex items-center gap-2 mb-8 group">
                 <Activity className="h-8 w-8 text-orange-500 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-2xl font-cabinet-grotesk tracking-wider text-gray-900">
-                    Healthy Task Manager
+                    Chronos Mind
                 </span>
             </div>
 
