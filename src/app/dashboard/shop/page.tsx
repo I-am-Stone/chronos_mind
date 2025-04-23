@@ -1,17 +1,20 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import Head from 'next/head';
 import ItemCategorySection from './_partials/ItemCategorySection';
 import ItemModal from './_partials/ItemModal';
-import { mockUserBalance, MarketItem } from './_partials/marketItems';
+import { MarketItem } from './_partials/marketItems';
 import SidebarLayout from '@/components/shared/sidebar/layout';
 import { getShopItems } from "@/api/shop/getShopItems";
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
+
+interface UserBalanceProps {
+  points: number;
+}
 
 const Marketplace = () => {
   const [selectedItem, setSelectedItem] = useState<MarketItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userBalance, setUserBalance] = useState(mockUserBalance);
+  const [userBalance, setUserBalance] = useState<UserBalanceProps>({ points: 0 });
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [shopItems, setShopItems] = useState<MarketItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +26,8 @@ const Marketplace = () => {
         setIsLoading(true);
         const response = await getShopItems();
         if (response.success && response.data) {
-          setShopItems(response.data);
+          setShopItems(response.data.items_list || []);
+          setUserBalance({ points: response.data.points });
         } else {
           setError("Failed to load shop items");
         }
@@ -42,7 +46,8 @@ const Marketplace = () => {
   }, []);
 
   // Group items by category with proper type annotation
-  const itemsByCategory = shopItems.reduce((acc: Record<string, MarketItem[]>, item) => {
+  // Use empty array as fallback if shopItems is undefined
+  const itemsByCategory = (shopItems || []).reduce((acc: Record<string, MarketItem[]>, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -58,10 +63,10 @@ const Marketplace = () => {
   const handlePurchase = (item: MarketItem, quantity: number) => {
     const totalCost = item.price * quantity;
 
-    if (userBalance.gems >= totalCost) {
+    if (userBalance.points >= totalCost) {
       setUserBalance(prev => ({
         ...prev,
-        gems: prev.gems - totalCost
+        points: prev.points - totalCost
       }));
 
       setInventory(prev => ({
@@ -72,7 +77,7 @@ const Marketplace = () => {
       alert(`Successfully purchased ${quantity} ${item.name}(s)!`);
       setIsModalOpen(false);
     } else {
-      alert("Not enough gems to complete this purchase!");
+      alert("Not enough points to complete this purchase!");
     }
   };
 
@@ -98,7 +103,6 @@ const Marketplace = () => {
 
   return (
       <SidebarLayout>
-
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
           <div className="max-w-6xl mx-auto px-6 py-12">
             <motion.div
@@ -120,7 +124,7 @@ const Marketplace = () => {
           <main className="container mx-auto py-6 px-4">
             <div className="mb-6 flex justify-end">
               <div className="bg-white p-3 rounded-md shadow">
-                <span className="font-medium">Your Gems:</span> {userBalance.gems}
+                <span className="font-medium">Your points:</span> {userBalance.points}
               </div>
             </div>
 

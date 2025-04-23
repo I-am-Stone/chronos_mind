@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { VT323 } from 'next/font/google';
 import "./globals.css";
+import React from "react";
 
 const vt323 = VT323({
   weight: '400',

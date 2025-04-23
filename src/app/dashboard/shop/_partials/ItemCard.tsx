@@ -40,15 +40,15 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, ownedCount }) => {
             'w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2' :
             'w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4'}`}
         >
-          {/* Properly render the item image */}
-          {item.image ? (
+          {/* Properly render the item imageURI */}
+          {item.imageURI ? (
               <img
-                  src={item.image}
+                  src={item.imageURI}
                   alt={item.name}
                   className={`${item.category === 'Equipment' ? 'w-6 h-6' : 'w-5 h-5'} object-contain`}
               />
           ) : (
-              // Fallback if no image is available
+              // Fallback if no imageURI is available
               <div className={`${item.category === 'Equipment' ? 'w-6 h-6' : 'w-5 h-5'} ${getCategoryColor().replace('text', 'bg')} rounded-full`}></div>
           )}
         </div>

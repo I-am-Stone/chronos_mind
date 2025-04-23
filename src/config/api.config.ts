@@ -12,6 +12,10 @@ export const API_CONFIG = {
         GOAL_STATS: '/api/goals/goal-stats',
         GOAL_PROFILE:'/api/goals/get-goal-profile',
         UPDATE_GOAL: '/api/goals/update/{goal_id}/',
+        SUB_TASK: '/api/goals/subtasks/create/',
+        SUB_TASK_LIST: '/api/goals/subtasks/',
+        DELETE_SUB_TASK: '/api/goals/subtasks/{id}/delete/',
+        COMPLETE_SUB_TASK: '/api/goals/subtasks/{id}/toggle-complete/',
 
         //habits
         POST_HABITS: '/api/habits/',
@@ -20,6 +24,7 @@ export const API_CONFIG = {
         UPDATE_HABIT: '/api/habits/update/{id}/',
         UPDATE_COMPLETE:'/api/habits/update-completion/{id}/',
         HABIT_PROFILE:'/api/habits/get-habit-profile',
+
 
         //introspection
         POST_SESSION: '/api/introspection/',
@@ -34,6 +39,8 @@ export const API_CONFIG = {
         GET_ACTIVITY:'/api/user-profile/get-activity/',
 
         //Shop
-        GET_SHOP_ITEMS:'/api/shop/get-shop-items',
+        GET_SHOP_ITEMS:'/api/shop/get-shop-items-and-points',
+        ORDER_ITEM:'/api/shop/order/',
+        ALL_ORDERED_ITEMS:'/api/shop/get-order',
     }
 };

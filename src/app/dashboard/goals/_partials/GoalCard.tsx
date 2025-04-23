@@ -11,6 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateGoal } from "@/api/goals/goalUpdate";
 import { Checkbox } from "@/components/ui/checkbox";
+import { addSubtask } from "@/api/goals/postSubtask";
+import { getSubTAsk } from "@/api/goals/listSubtask";
+import { subtaskDelete } from "@/api/goals/DeleteSubtask";
+import { SubtaskComplete } from "@/api/goals/subtaskComplete";
 
 interface Subtask {
   id: number;
@@ -69,29 +73,48 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                                                     onSubtaskDelete
                                                   }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedGoal, setEditedGoal] = useState<Goal>({ ...goal, subtasks: goal.subtasks || [] });
-  const [displayedGoal, setDisplayedGoal] = useState<Goal>({ ...goal, subtasks: goal.subtasks || [] });
+  const [editedGoal, setEditedGoal] = useState<Goal>({ ...goal });
   const [showSubtasks, setShowSubtasks] = useState(false);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [addingSubtask, setAddingSubtask] = useState(false);
+  const [loadingSubtasks, setLoadingSubtasks] = useState(false);
 
-  // Update local state when prop changes
+  // Fetch subtasks when goal changes or when subtasks are toggled
   useEffect(() => {
-    setDisplayedGoal({ ...goal, subtasks: goal.subtasks || [] });
-    setEditedGoal({ ...goal, subtasks: goal.subtasks || [] });
-  }, [goal]);
+    const fetchSubtasks = async () => {
+      if (!showSubtasks) return;
+
+      try {
+        setLoadingSubtasks(true);
+        const response = await getSubTAsk();
+        if (response.success && response.data) {
+          const goalSubtasks = response.data
+              .filter((subtask: any) => subtask.goal_id === goal.id)
+              .map((subtask: any) => ({
+                id: subtask.id,
+                title: subtask.title,
+                completed: subtask.completed
+              }));
+
+          setEditedGoal(prev => ({ ...prev, subtasks: goalSubtasks }));
+        }
+      } catch (error) {
+        console.error("Error fetching subtasks:", error);
+      } finally {
+        setLoadingSubtasks(false);
+      }
+    };
+
+    fetchSubtasks();
+  }, [goal.id, showSubtasks]);
 
   const handleEdit = () => {
     setIsEditing(true);
-    setEditedGoal({ ...displayedGoal });
+    setEditedGoal({ ...goal });
   };
 
   const handleSave = async () => {
     try {
-      // Optimistic update - update UI immediately
-      setDisplayedGoal({ ...editedGoal });
-
-      // Call the updateGoal API function
       const response = await updateGoal(editedGoal.id, {
         goal_title: editedGoal.title,
         description: editedGoal.description,
@@ -100,95 +123,76 @@ export const GoalCard: React.FC<GoalCardProps> = ({
       });
 
       if (response.success) {
-        // Update parent component state
         onEdit(editedGoal);
         setIsEditing(false);
       } else {
-        // Revert to previous state if API call fails
-        setDisplayedGoal({ ...goal });
         console.error("Failed to update goal:", response.message);
       }
     } catch (error) {
-      // Revert to previous state if API call fails
-      setDisplayedGoal({ ...goal });
       console.error("Error updating goal:", error);
     }
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    // Reset editedGoal to current displayedGoal
-    setEditedGoal({ ...displayedGoal });
-  };
-
-  const handleChange = (field: keyof Goal, value: string | number) => {
-    setEditedGoal(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newProgress = Number(e.target.value);
-
-    // Update local state immediately for better UX
-    setDisplayedGoal(prev => ({ ...prev, progress: newProgress }));
-
-    // Notify parent component
-    onProgressUpdate(displayedGoal.id, newProgress);
+    const newProgress = Math.min(100, Math.max(0, Number(e.target.value)));
+    onProgressUpdate(goal.id, newProgress);
   };
 
-  const handleAddSubtask = () => {
+  const handleAddSubtask = async () => {
     if (!newSubtaskTitle.trim()) return;
 
-    const newSubtask: Subtask = {
-      id: Date.now(), // Temporary ID until server assigns one
-      title: newSubtaskTitle,
-      completed: false
-    };
+    try {
+      const response = await addSubtask(goal.id, newSubtaskTitle);
 
-    // Update local state for immediate UI update
-    const updatedSubtasks = [...displayedGoal.subtasks, newSubtask];
-    setDisplayedGoal(prev => ({ ...prev, subtasks: updatedSubtasks }));
+      if (response.success) {
+        const newSubtask: Subtask = {
+          id: response.data.id,
+          title: newSubtaskTitle,
+          completed: false
+        };
 
-    // Notify parent component if callback exists
-    if (onSubtaskAdd) {
-      onSubtaskAdd(displayedGoal.id, newSubtask);
-    }
+        if (onSubtaskAdd) {
+          onSubtaskAdd(goal.id, newSubtask);
+        }
 
-    // Reset form
-    setNewSubtaskTitle("");
-    setAddingSubtask(false);
-  };
-
-  const handleSubtaskKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddSubtask();
+        setNewSubtaskTitle("");
+        setAddingSubtask(false);
+      }
+    } catch (error) {
+      console.error("Error adding subtask:", error);
     }
   };
 
-  const handleToggleSubtask = (subtaskId: number, completed: boolean) => {
-    // Update local state
-    const updatedSubtasks = displayedGoal.subtasks.map(st =>
-        st.id === subtaskId ? { ...st, completed } : st
-    );
+  const handleToggleSubtask = async (subtaskId: number, completed: boolean) => {
+    try {
+      if (completed) {
+        const response = await SubtaskComplete(subtaskId);
+        if (!response.success) {
+          console.error("Failed to complete subtask:", response.message);
+          return;
+        }
+      }
 
-    setDisplayedGoal(prev => ({ ...prev, subtasks: updatedSubtasks }));
-
-    // Notify parent component if callback exists
-    if (onSubtaskToggle) {
-      onSubtaskToggle(displayedGoal.id, subtaskId, completed);
+      if (onSubtaskToggle) {
+        onSubtaskToggle(goal.id, subtaskId, completed);
+      }
+    } catch (error) {
+      console.error("Error toggling subtask:", error);
     }
   };
 
-  const handleDeleteSubtask = (subtaskId: number) => {
-    // Update local state
-    const updatedSubtasks = displayedGoal.subtasks.filter(st => st.id !== subtaskId);
-    setDisplayedGoal(prev => ({ ...prev, subtasks: updatedSubtasks }));
-
-    // Notify parent component if callback exists
-    if (onSubtaskDelete) {
-      onSubtaskDelete(displayedGoal.id, subtaskId);
+  const handleDeleteSubtask = async (subtaskId: number) => {
+    try {
+      const response = await subtaskDelete(subtaskId);
+      if (response.success && onSubtaskDelete) {
+        onSubtaskDelete(goal.id, subtaskId);
+      }
+    } catch (error) {
+      console.error("Error deleting subtask:", error);
     }
   };
+
+  const daysRemaining = getDaysRemaining(goal.targetDate);
 
   return (
       <div className="max-w-xl mx-auto">
@@ -201,7 +205,6 @@ export const GoalCard: React.FC<GoalCardProps> = ({
           <Card>
             <CardContent className="pt-6">
               {isEditing ? (
-                  // Edit Mode
                   <div className="space-y-4">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
@@ -209,7 +212,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                           <label className="text-sm font-medium mb-1 block">Goal Title</label>
                           <Input
                               value={editedGoal.title}
-                              onChange={(e) => handleChange('title', e.target.value)}
+                              onChange={(e) => setEditedGoal({...editedGoal, title: e.target.value})}
                               className="w-full"
                           />
                         </div>
@@ -217,7 +220,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                           <label className="text-sm font-medium mb-1 block">Description</label>
                           <Textarea
                               value={editedGoal.description}
-                              onChange={(e) => handleChange('description', e.target.value)}
+                              onChange={(e) => setEditedGoal({...editedGoal, description: e.target.value})}
                               className="w-full"
                               rows={3}
                           />
@@ -227,7 +230,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                           <Input
                               type="date"
                               value={editedGoal.targetDate.split('T')[0]}
-                              onChange={(e) => handleChange('targetDate', e.target.value)}
+                              onChange={(e) => setEditedGoal({...editedGoal, targetDate: e.target.value})}
                               className="w-full"
                           />
                         </div>
@@ -235,7 +238,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                           <label className="text-sm font-medium mb-1 block">Goal Type</label>
                           <Select
                               value={editedGoal.goal_type}
-                              onValueChange={(value) => handleChange('goal_type', value)}
+                              onValueChange={(value) => setEditedGoal({...editedGoal, goal_type: value})}
                           >
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select goal type" />
@@ -252,7 +255,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <Button onClick={handleCancel} variant="outline" size="sm">
+                      <Button onClick={() => setIsEditing(false)} variant="outline" size="sm">
                         <XIcon className="h-4 w-4 mr-1" /> Cancel
                       </Button>
                       <Button onClick={handleSave} variant="default" size="sm">
@@ -261,25 +264,24 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                     </div>
                   </div>
               ) : (
-                  // View Mode
                   <>
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-semibold font-vt323">{displayedGoal.title}</h3>
-                          <Badge className={getStatusColor(displayedGoal.status)}>
-                            {displayedGoal.status.replace('-', ' ').charAt(0).toUpperCase() + displayedGoal.status.slice(1)}
+                          <h3 className="text-xl font-semibold font-vt323">{goal.title}</h3>
+                          <Badge className={getStatusColor(goal.status)}>
+                            {goal.status.replace('-', ' ')}
                           </Badge>
                           <Badge>
-                            {displayedGoal.difficulty.replace('-', ' ').charAt(0).toUpperCase() + displayedGoal.difficulty.slice(1)}
+                            {goal.difficulty}
                           </Badge>
                           <Badge variant="outline">
-                            {displayedGoal.goal_type.replace('-', ' ').charAt(0).toUpperCase() + displayedGoal.goal_type.slice(1)}
+                            {goal.goal_type}
                           </Badge>
                         </div>
                         <div className="max-h-32 overflow-y-auto">
                           <p className="text-gray-600 mb-2 font-vt323 break-all whitespace-normal overflow-hidden">
-                            {displayedGoal.description}
+                            {goal.description}
                           </p>
                         </div>
                       </div>
@@ -294,7 +296,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => onDelete(displayedGoal.id)}
+                            onClick={() => onDelete(goal.id)}
                         >
                           <TrashIcon className="h-4 w-4 text-red-500" />
                         </Button>
@@ -303,32 +305,31 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 font-vt323">
                         <CalendarIcon className="h-4 w-4 text-gray-500" />
-                        <span>Due: {new Date(displayedGoal.targetDate).toLocaleDateString()}</span>
-                        {getDaysRemaining(displayedGoal.targetDate) < 0 ? (
+                        <span>Due: {new Date(goal.targetDate).toLocaleDateString()}</span>
+                        {daysRemaining < 0 ? (
                             <Badge variant="destructive">Overdue</Badge>
-                        ) : getDaysRemaining(displayedGoal.targetDate) <= 7 ? (
+                        ) : daysRemaining <= 7 ? (
                             <Badge variant="secondary">Due soon</Badge>
                         ) : null}
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600 font-vt323">Progress</span>
-                          <span className="text-sm font-medium font-vt323">{displayedGoal.progress}%</span>
+                          <span className="text-sm font-medium font-vt323">{goal.progress}%</span>
                         </div>
                         <div className="flex items-center gap-4 font-vt323">
-                          <Progress value={displayedGoal.progress} className="flex-1" />
+                          <Progress value={goal.progress} className="flex-1" />
                           <Input
                               type="number"
                               min="0"
                               max="100"
-                              value={displayedGoal.progress}
+                              value={goal.progress}
                               onChange={handleProgressChange}
                               className="w-20"
                           />
                         </div>
                       </div>
 
-                      {/* Subtasks Section */}
                       <div className="pt-2 border-t border-gray-100">
                         <div className="flex justify-between items-center mb-2">
                           <Button
@@ -338,7 +339,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                               className="px-2 font-vt323"
                           >
                             <ListChecksIcon className="h-4 w-4 mr-2" />
-                            Subtasks {displayedGoal.subtasks.length > 0 && `(${displayedGoal.subtasks.length})`}
+                            Subtasks {goal.subtasks?.length > 0 && `(${goal.subtasks.length})`}
                           </Button>
                           <Button
                               variant="outline"
@@ -350,13 +351,12 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                           </Button>
                         </div>
 
-                        {/* Add Subtask Form */}
                         {addingSubtask && (
                             <div className="flex items-center gap-2 mb-3 p-2 bg-gray-50 rounded-md">
                               <Input
                                   value={newSubtaskTitle}
                                   onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                                  onKeyDown={handleSubtaskKeyPress}
+                                  onKeyDown={(e) => e.key === 'Enter' && handleAddSubtask()}
                                   placeholder="Enter subtask..."
                                   className="flex-1 text-sm"
                                   autoFocus
@@ -379,13 +379,14 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                             </div>
                         )}
 
-                        {/* Subtasks List */}
                         {showSubtasks && (
                             <div className="pl-2 mt-2 space-y-2">
-                              {displayedGoal.subtasks.length === 0 ? (
+                              {loadingSubtasks ? (
+                                  <p className="text-sm text-gray-500 italic">Loading subtasks...</p>
+                              ) : goal.subtasks?.length === 0 ? (
                                   <p className="text-sm text-gray-500 italic">No subtasks yet</p>
                               ) : (
-                                  displayedGoal.subtasks.map((subtask) => (
+                                  goal.subtasks?.map((subtask) => (
                                       <div key={subtask.id} className="flex items-center justify-between group p-1 rounded-md hover:bg-gray-50">
                                         <div className="flex items-center gap-2">
                                           <Checkbox

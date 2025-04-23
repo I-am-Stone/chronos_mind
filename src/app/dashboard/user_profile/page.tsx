@@ -5,10 +5,9 @@ import SidebarLayout from '@/components/shared/sidebar/layout';
 import CharacterHeader from './_partials/CharacterHeader';
 import ActivityFeed from './_partials/ActivityFeed';
 import { getProfileData } from '@/api/user_profile/getProfileData';
-import { getActivityLog } from '@/api/user_profile/getActivityLog';
+import { getActivityLog } from '@/api/user_profile/getActivityLog'
 import Inventory from './_partials/Inventory';
-// Define the level thresholds based on the backend logic
-
+import { getOrders } from "@/api/shop/listOrderitem";
 
 interface UserProfileData {
   user_name: string;
@@ -46,7 +45,15 @@ interface ActivityNotification {
   icon: React.ReactNode;
 }
 
-// Add response type interfaces
+interface InventoryItem {
+  id: number;
+  name: string;
+  quantity: number;
+  description: string;
+  imageURI: string;
+  category: string;
+}
+
 interface ProfileResponse {
   success: boolean;
   data: UserProfileData;
@@ -61,8 +68,18 @@ export default function UserProfilePage() {
   const [userData, setUserData] = useState<UserProfileData | null>(null);
   const [activityFeed, setActivityFeed] = useState<ActivityNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inventory, setItems] = useState<InventoryItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [showItemDetails, setShowItemDetails] = useState(false);
 
-  // Fetch user data
+  useEffect(() => {
+    const fetchOrderItems = async () => {
+      const response = await getOrders();
+      setItems(response.data);
+    };
+    fetchOrderItems().then(r => console.log(r));
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -79,8 +96,7 @@ export default function UserProfilePage() {
           setActivityFeed(
               activityResponse.data.map((activity: ActivityLogItem) =>
                   mapActivityToNotification(activity)
-              )
-          );
+              ));
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -150,6 +166,17 @@ export default function UserProfilePage() {
     if (diffMin > 0) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
     return 'Just now';
   }
+
+  const onItemClick = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setShowItemDetails(true);
+  };
+
+  const closeItemDetails = () => {
+    setShowItemDetails(false);
+    setSelectedItem(null);
+  };
+
   if (loading) {
     return (
         <SidebarLayout>
@@ -175,10 +202,71 @@ export default function UserProfilePage() {
             </div>
 
             <div className="mb-6">
-              
-
+              <Inventory
+                  inventory={inventory}
+                  onItemClick={onItemClick}
+              />
             </div>
 
+            {showItemDetails && selectedItem && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[80vh] overflow-y-auto">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-xl font-bold text-gray-900">{selectedItem.name}</h3>
+                      <button
+                          onClick={closeItemDetails}
+                          className="text-gray-500 hover:text-gray-700"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {selectedItem.imageURI && (
+                        <div className="mb-4 flex justify-center">
+                          <img
+                              src={selectedItem.imageURI}
+                              alt={selectedItem.name}
+                              className="h-40 w-40 object-contain rounded-lg border border-gray-200"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Item';
+                              }}
+                          />
+                        </div>
+                    )}
+
+                    <div className="mb-4">
+                      <p className="text-gray-700">{selectedItem.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {selectedItem.category && (
+                          <div>
+                            <span className="text-sm font-medium text-gray-500">Category:</span>
+                            <p className="text-gray-900 capitalize">{selectedItem.category.toLowerCase()}</p>
+                          </div>
+                      )}
+
+                      {selectedItem.quantity !== undefined && (
+                          <div>
+                            <span className="text-sm font-medium text-gray-500">Quantity:</span>
+                            <p className="text-gray-900">{selectedItem.quantity}</p>
+                          </div>
+                      )}
+                    </div>
+
+                    <div className="mt-6">
+                      <button
+                          onClick={closeItemDetails}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md transition"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+            )}
 
             <ActivityFeed notifications={activityFeed} />
           </div>

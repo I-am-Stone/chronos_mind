@@ -29,35 +29,30 @@ import Link from "next/link";
       url: "user_profile",
       icon: User,
       color: "text-cyan-500",
-      badge: "Lvl 5"
     },
     {
       title: "Quests",
       url: "goals",
       icon: Target,
       color: "text-emerald-500",
-      badge: "3"
     },
     {
       title: "Habits",
       url: "habit",
       icon: Dumbbell,
       color: "text-emerald-500",
-      badge: "3"
     },
     {
       title: "Introspection",
       url: "introspection",
       icon: ScrollText,
       color: "text-emerald-500",
-      badge: "3"
     },
     {
       title: "User Manual",
       url: "user_manul",
       icon: Book,
       color: "text-emerald-500",
-      badge: "3"
     },
     {
       title: "Stats",
@@ -71,12 +66,6 @@ import Link from "next/link";
       icon: Backpack,
       color: "text-amber-500",
       badge: "New"
-    },
-    {
-      title: "Settings",
-      url: "settings",
-      icon: Settings,
-      color: "text-gray-500"
     },
     {
       title: "Logout",
@@ -98,13 +87,13 @@ import Link from "next/link";
           </div>
           
           <div className="px-3 py-2 mb-6">
-            <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2.5">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full w-2/3"></div>
-            </div>
-            <div className="flex justify-between mt-1 text-xs text-gray-600 dark:text-gray-400 font-vt323">
-              <span>XP: 650/1000</span>
-              <span>Next Level: 35%</span>
-            </div>
+            {/*<div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2.5">*/}
+            {/*  <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full w-2/3"></div>*/}
+            {/*</div>*/}
+            {/*<div className="flex justify-between mt-1 text-xs text-gray-600 dark:text-gray-400 font-vt323">*/}
+            {/*  <span>XP: 650/1000</span>*/}
+            {/*  <span>Next Level: 35%</span>*/}
+            {/*</div>*/}
           </div>
           
           <SidebarGroup>

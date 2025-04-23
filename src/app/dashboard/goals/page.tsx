@@ -5,7 +5,7 @@ import GoalForm from "./_partials/GoalForm"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import GoalCard from "./_partials/GoalCard"
 import { getGoals } from "@/api/goals/getGoals"
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { backendGoal } from "./_partials/goalType"
 import { GoalFilters } from "./_partials/GoalFilter"
 import GoalStreak from "./_partials/GoalStreak";
@@ -15,14 +15,17 @@ import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
 import GoalsBarChart from "./_partials/GoalAnalytics";
 import { GetGoalStats } from "@/api/goals/getGoalStats";
+import { getSubTAsk } from "@/api/goals/listSubtask";
+import { addSubtask } from "@/api/goals/postSubtask";
+import { subtaskDelete } from "@/api/goals/DeleteSubtask";
+import { SubtaskComplete } from "@/api/goals/subtaskComplete";
 
 import { toast, Toaster } from 'sonner';
-
-
 
 export default function GoalsPage() {
   const [activeTab, setActiveTab] = useState('dashboard'); // Add active tab state
   const [goals, setGoals] = useState<backendGoal[]>([]);
+  const [subtasks, setSubtasks] = useState<Record<number, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -32,6 +35,7 @@ export default function GoalsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [chartData, setChartData] = useState(null);
 
+  // Fetch all goals
   useEffect(() => {
     const fetchGoals = async () => {
       const loadingToast = toast.loading('Loading your quests...', {
@@ -75,9 +79,40 @@ export default function GoalsPage() {
       }
     };
 
-    fetchGoals();
+    fetchGoals().then(r => console.log(r));
   }, [refreshTrigger]);
 
+  // Fetch all subtasks
+  useEffect(() => {
+    const fetchAllSubtasks = async () => {
+      try {
+        const response = await getSubTAsk();
+        if (response.success && response.data) {
+          const subtasksByGoal: Record<number, any[]> = {};
+          response.data.forEach((subtask: any) => {
+            const goalId = subtask.goal_id;
+            if (!subtasksByGoal[goalId]) {
+              subtasksByGoal[goalId] = [];
+            }
+            subtasksByGoal[goalId].push({
+              id: subtask.id,
+              title: subtask.title,
+              completed: subtask.completed,
+              goal_id: subtask.goal_id
+            });
+          });
+          setSubtasks(subtasksByGoal);
+        }
+      } catch (error) {
+        console.error("Error fetching all subtasks:", error);
+      }
+    };
+
+    fetchAllSubtasks().then(R => console.log(R));
+
+  }, [goals, refreshTrigger]);
+
+  // Fetch goal stats
   useEffect(() => {
     const fetchGoalStats = async () => {
       try {
@@ -131,14 +166,27 @@ export default function GoalsPage() {
         });
   }, [goals, searchTerm, filterStatus, sortBy, sortOrder]);
 
-  const handleEdit = () => {
-    toast.info('Edit functionality', {
-      description: 'Goal editing is done!',
+  // Handle edit operation
+  const handleEdit = (updatedGoal) => {
+    setGoals(prevGoals =>
+        prevGoals.map(goal =>
+            goal.id === updatedGoal.id ? {
+              ...goal,
+              goal_title: updatedGoal.title,
+              description: updatedGoal.description,
+              target_date: updatedGoal.targetDate,
+              goal_type: updatedGoal.goal_type
+            } : goal
+        )
+    );
+
+    toast.info('Goal updated', {
+      description: 'Your quest has been updated!',
       duration: 3000
     });
   };
 
-
+  // Handle delete operation
   const handleDelete = async (id: number) => {
     const confirmDelete = window.confirm('Are you sure you want to abandon this quest?');
 
@@ -153,6 +201,13 @@ export default function GoalsPage() {
 
       if (response.success) {
         setGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
+        // Also clear subtasks for this goal
+        setSubtasks(prev => {
+          const newSubtasks = { ...prev };
+          delete newSubtasks[id];
+          return newSubtasks;
+        });
+
         toast.dismiss(deleteToast);
         toast.success('Quest abandoned', {
           description: 'Your quest has been removed from your log',
@@ -175,6 +230,7 @@ export default function GoalsPage() {
     }
   };
 
+  // Handle progress update
   const handleProgressUpdate = async (id: number, progress: number, e?: React.MouseEvent) => {
     // If an event was passed, prevent default to avoid page refresh
     if (e) {
@@ -245,6 +301,55 @@ export default function GoalsPage() {
         duration: 5000
       });
     }
+  };
+
+  // Handle subtask operations
+  const handleSubtaskAdd = async (goalId: number, subtask: any) => {
+    // Add subtask to local state
+    setSubtasks(prev => ({
+      ...prev,
+      [goalId]: [...(prev[goalId] || []), subtask]
+    }));
+
+    // Update goal progress based on subtasks completion
+    updateGoalProgressFromSubtasks(goalId);
+  };
+
+  const handleSubtaskToggle = async (goalId: number, subtaskId: number, completed: boolean) => {
+    // Update subtask in local state
+    setSubtasks(prev => ({
+      ...prev,
+      [goalId]: (prev[goalId] || []).map(st =>
+          st.id === subtaskId ? { ...st, completed } : st
+      )
+    }));
+
+    // Update goal progress based on subtasks completion
+    updateGoalProgressFromSubtasks(goalId);
+  };
+
+  const handleSubtaskDelete = async (goalId: number, subtaskId: number) => {
+    // Remove subtask from local state
+    setSubtasks(prev => ({
+      ...prev,
+      [goalId]: (prev[goalId] || []).filter(st => st.id !== subtaskId)
+    }));
+
+    // Update goal progress based on subtasks completion
+    updateGoalProgressFromSubtasks(goalId);
+  };
+
+  // Calculate and update goal progress based on completed subtasks
+  const updateGoalProgressFromSubtasks = (goalId: number) => {
+    const goalSubtasks = subtasks[goalId] || [];
+
+    if (goalSubtasks.length === 0) return;
+
+    const completedCount = goalSubtasks.filter(st => st.completed).length;
+    const newProgress = Math.round((completedCount / goalSubtasks.length) * 100);
+
+    // Update goal progress
+    handleProgressUpdate(goalId, newProgress);
   };
 
   if (loading) {
@@ -383,11 +488,15 @@ export default function GoalsPage() {
                                         ? 'completed'
                                         : backendGoal.progress_bar > 0
                                             ? 'in-progress'
-                                            : 'not-started'
+                                            : 'not-started',
+                                    subtasks: subtasks[backendGoal.id] || []
                                   }}
                                   onDelete={handleDelete}
                                   onEdit={handleEdit}
                                   onProgressUpdate={handleProgressUpdate}
+                                  onSubtaskAdd={handleSubtaskAdd}
+                                  onSubtaskToggle={handleSubtaskToggle}
+                                  onSubtaskDelete={handleSubtaskDelete}
                               />
                           ))
                       )}
