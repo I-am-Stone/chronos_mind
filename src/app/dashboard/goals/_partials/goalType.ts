@@ -6,4 +6,5 @@ export interface backendGoal {
     difficulty: string;
     progress_bar: number;
     goal_type: string;
+    subtasks: []; //list of SubtaskObject
   }

@@ -6,4 +6,5 @@ export interface MarketItem {
     quantity: number;
     category: string;
     description: string;
+
 }

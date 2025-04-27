@@ -15,16 +15,11 @@ import { UpdateProgress } from "@/api/goals/progressUpdate"
 import { motion } from 'framer-motion';
 import GoalsBarChart from "./_partials/GoalAnalytics";
 import { GetGoalStats } from "@/api/goals/getGoalStats";
-import { getSubTAsk } from "@/api/goals/listSubtask";
-import { addSubtask } from "@/api/goals/postSubtask";
-import { subtaskDelete } from "@/api/goals/DeleteSubtask";
-import { SubtaskComplete } from "@/api/goals/subtaskComplete";
 import { toast, Toaster } from 'sonner';
 
 export default function GoalsPage() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [goals, setGoals] = useState<backendGoal[]>([]);
-  const [subtasks, setSubtasks] = useState<Record<number, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -77,36 +72,8 @@ export default function GoalsPage() {
       }
     };
 
-    fetchGoals();
+    fetchGoals().then(r => console.log(r));
   }, [refreshTrigger]);
-
-  useEffect(() => {
-    const fetchAllSubtasks = async () => {
-      try {
-        const response = await getSubTAsk();
-        if (response.success && response.data) {
-          const subtasksByGoal: Record<number, any[]> = {};
-          response.data.forEach((subtask: any) => {
-            const goalId = subtask.goal_id;
-            if (!subtasksByGoal[goalId]) {
-              subtasksByGoal[goalId] = [];
-            }
-            subtasksByGoal[goalId].push({
-              id: subtask.id,
-              title: subtask.title,
-              completed: subtask.completed,
-              goal_id: subtask.goal_id
-            });
-          });
-          setSubtasks(subtasksByGoal);
-        }
-      } catch (error) {
-        console.error("Error fetching all subtasks:", error);
-      }
-    };
-
-    fetchAllSubtasks();
-  }, [goals, refreshTrigger]);
 
   useEffect(() => {
     const fetchGoalStats = async () => {
@@ -131,47 +98,47 @@ export default function GoalsPage() {
       }
     };
 
-    fetchGoalStats();
+    fetchGoalStats().then(r => console.log(r));
   }, [refreshTrigger]);
 
   const filteredGoals = useMemo(() => {
     return goals
-      .filter(goal => {
-        const matchesSearch = goal.goal_title.toLowerCase().includes(searchTerm.toLowerCase());
-        const statusMatch =
-          filterStatus === 'all' ? true :
-          filterStatus === 'completed' ? goal.progress_bar === 100 :
-          filterStatus === 'in-progress' ? (goal.progress_bar > 0 && goal.progress_bar < 100) :
-          filterStatus === 'not-started' ? goal.progress_bar === 0 : true;
+        .filter(goal => {
+          const matchesSearch = goal.goal_title.toLowerCase().includes(searchTerm.toLowerCase());
+          const statusMatch =
+              filterStatus === 'all' ? true :
+                  filterStatus === 'completed' ? goal.progress_bar === 100 :
+                      filterStatus === 'in-progress' ? (goal.progress_bar > 0 && goal.progress_bar < 100) :
+                          filterStatus === 'not-started' ? goal.progress_bar === 0 : true;
 
-        return matchesSearch && statusMatch;
-      })
-      .sort((a, b) => {
-        let comparison = 0;
+          return matchesSearch && statusMatch;
+        })
+        .sort((a, b) => {
+          let comparison = 0;
 
-        if (sortBy === 'date') {
-          comparison = new Date(a.target_date).getTime() - new Date(b.target_date).getTime();
-        } else if (sortBy === 'progress') {
-          comparison = a.progress_bar - b.progress_bar;
-        } else if (sortBy === 'title') {
-          comparison = a.goal_title.localeCompare(b.goal_title);
-        }
+          if (sortBy === 'date') {
+            comparison = new Date(a.target_date).getTime() - new Date(b.target_date).getTime();
+          } else if (sortBy === 'progress') {
+            comparison = a.progress_bar - b.progress_bar;
+          } else if (sortBy === 'title') {
+            comparison = a.goal_title.localeCompare(b.goal_title);
+          }
 
-        return sortOrder === 'asc' ? comparison : -comparison;
-      });
+          return sortOrder === 'asc' ? comparison : -comparison;
+        });
   }, [goals, searchTerm, filterStatus, sortBy, sortOrder]);
 
-  const handleEdit = (updatedGoal) => {
+  const handleEdit = (updatedGoal:any) => {
     setGoals(prevGoals =>
-      prevGoals.map(goal =>
-        goal.id === updatedGoal.id ? {
-          ...goal,
-          goal_title: updatedGoal.title,
-          description: updatedGoal.description,
-          target_date: updatedGoal.targetDate,
-          goal_type: updatedGoal.goal_type
-        } : goal
-      )
+        prevGoals.map(goal =>
+            goal.id === updatedGoal.id ? {
+              ...goal,
+              goal_title: updatedGoal.title,
+              description: updatedGoal.description,
+              target_date: updatedGoal.targetDate,
+              goal_type: updatedGoal.goal_type
+            } : goal
+        )
     );
 
     toast.info('Goal updated', {
@@ -194,12 +161,6 @@ export default function GoalsPage() {
 
       if (response.success) {
         setGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
-        setSubtasks(prev => {
-          const newSubtasks = { ...prev };
-          delete newSubtasks[id];
-          return newSubtasks;
-        });
-
         toast.dismiss(deleteToast);
         toast.success('Quest abandoned', {
           description: 'Your quest has been removed from your log',
@@ -228,19 +189,19 @@ export default function GoalsPage() {
     }
 
     setGoals(prevGoals =>
-      prevGoals.map(goal =>
-        goal.id === id
-          ? {
-            ...goal,
-            progress_bar: progress,
-            status: progress === 100
-              ? 'completed'
-              : progress > 0
-                ? 'in-progress'
-                : 'not-started'
-          }
-          : goal
-      )
+        prevGoals.map(goal =>
+            goal.id === id
+                ? {
+                  ...goal,
+                  progress_bar: progress,
+                  status: progress === 100
+                      ? 'completed'
+                      : progress > 0
+                          ? 'in-progress'
+                          : 'not-started'
+                }
+                : goal
+        )
     );
 
     if (progress === 100) {
@@ -288,315 +249,163 @@ export default function GoalsPage() {
     }
   };
 
-  const handleSubtaskAdd = async (goalId: number, subtask: any) => {
-    try {
-      const response = await addSubtask(goalId, subtask.title);
-      
-      if (response.success) {
-        const newSubtask = {
-          ...subtask,
-          id: response.data.id // Replace temporary ID with real ID from API
-        };
-        
-        setSubtasks(prev => ({
-          ...prev,
-          [goalId]: [...(prev[goalId] || []), newSubtask]
-        }));
-        
-        updateGoalProgressFromSubtasks(goalId);
-      }
-    } catch (error) {
-      console.error("Error adding subtask:", error);
-      toast.error('Failed to add subtask', {
-        description: 'Could not add the subtask. Please try again.',
-        duration: 3000
-      });
-    }
-  };
-
-  const handleSubtaskToggle = async (goalId: number, subtaskId: number, completed: boolean) => {
-    // Optimistic update
-    setSubtasks(prev => ({
-      ...prev,
-      [goalId]: (prev[goalId] || []).map(st => 
-        st.id === subtaskId ? { ...st, completed } : st
-      )
-    }));
-
-    try {
-      const response = await SubtaskComplete(subtaskId, completed);
-      
-      if (!response.success) {
-        // Rollback on error
-        setSubtasks(prev => ({
-          ...prev,
-          [goalId]: (prev[goalId] || []).map(st => 
-            st.id === subtaskId ? { ...st, completed: !completed } : st
-          )
-        }));
-        toast.error('Update failed', {
-          description: 'Could not update subtask status',
-          duration: 3000
-        });
-      } else {
-        updateGoalProgressFromSubtasks(goalId);
-      }
-    } catch (error) {
-      console.error("Error toggling subtask:", error);
-      setSubtasks(prev => ({
-        ...prev,
-        [goalId]: (prev[goalId] || []).map(st => 
-          st.id === subtaskId ? { ...st, completed: !completed } : st
-        )
-      }));
-      toast.error('Connection error', {
-        description: 'Could not update subtask. Please try again.',
-        duration: 3000
-      });
-    }
-  };
-
-  const handleSubtaskDelete = async (goalId: number, subtaskId: number) => {
-    // Optimistic update
-    setSubtasks(prev => ({
-      ...prev,
-      [goalId]: (prev[goalId] || []).filter(st => st.id !== subtaskId)
-    }));
-
-    try {
-      const response = await subtaskDelete(subtaskId);
-      
-      if (!response.success) {
-        // Rollback on error by refreshing subtasks
-        const subtasksResponse = await getSubTAsk();
-        if (subtasksResponse.success && subtasksResponse.data) {
-          const subtasksByGoal: Record<number, any[]> = {};
-          subtasksResponse.data.forEach((subtask: any) => {
-            const gId = subtask.goal_id;
-            if (!subtasksByGoal[gId]) {
-              subtasksByGoal[gId] = [];
-            }
-            subtasksByGoal[gId].push({
-              id: subtask.id,
-              title: subtask.title,
-              completed: subtask.completed,
-              goal_id: subtask.goal_id
-            });
-          });
-          setSubtasks(subtasksByGoal);
-        }
-        toast.error('Delete failed', {
-          description: 'Could not delete the subtask',
-          duration: 3000
-        });
-      } else {
-        updateGoalProgressFromSubtasks(goalId);
-        toast.success('Subtask deleted', {
-          description: 'The subtask has been removed',
-          duration: 2000
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting subtask:", error);
-      // Rollback by refreshing subtasks
-      const subtasksResponse = await getSubTAsk();
-      if (subtasksResponse.success && subtasksResponse.data) {
-        const subtasksByGoal: Record<number, any[]> = {};
-        subtasksResponse.data.forEach((subtask: any) => {
-          const gId = subtask.goal_id;
-          if (!subtasksByGoal[gId]) {
-            subtasksByGoal[gId] = [];
-          }
-          subtasksByGoal[gId].push({
-            id: subtask.id,
-            title: subtask.title,
-            completed: subtask.completed,
-            goal_id: subtask.goal_id
-          });
-        });
-        setSubtasks(subtasksByGoal);
-      }
-      toast.error('Connection error', {
-        description: 'Could not delete subtask. Please try again.',
-        duration: 3000
-      });
-    }
-  };
-
-  const updateGoalProgressFromSubtasks = (goalId: number) => {
-    const goalSubtasks = subtasks[goalId] || [];
-    
-    if (goalSubtasks.length === 0) {
-      handleProgressUpdate(goalId, 0);
-      return;
-    }
-
-    const completedCount = goalSubtasks.filter(st => st.completed).length;
-    const newProgress = Math.round((completedCount / goalSubtasks.length) * 100);
-    
-    handleProgressUpdate(goalId, newProgress);
-  };
-
   if (loading) {
     return (
-      <SidebarLayout>
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-          <div className="text-xl font-vt323">Loading your quests...</div>
-        </div>
-      </SidebarLayout>
+        <SidebarLayout>
+          <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="text-xl font-vt323">Loading your quests...</div>
+          </div>
+        </SidebarLayout>
     );
   }
 
   return (
-    <SidebarLayout>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          className: 'font-vt323 border border-gray-100',
-          style: {
-            fontSize: '16px'
-          }
-        }}
-      />
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
-        <SidebarTrigger />
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Quest System
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Embark on a Quest of Goals
-            </p>
-          </motion.div>
+      <SidebarLayout>
+        <Toaster
+            position="top-right"
+            toastOptions={{
+              className: 'font-vt323 border border-gray-100',
+              style: {
+                fontSize: '16px'
+              }
+            }}
+        />
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+          <SidebarTrigger />
+          <div className="max-w-6xl mx-auto px-6 py-12">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center"
+            >
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Quest System
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">
+                Embark on a Quest of Goals
+              </p>
+            </motion.div>
+          </div>
         </div>
-      </div>
-      <div className="min-h-screen bg-slate-50">
-        <div className="flex items-start p-4">
-          <div className="w-full flex flex-col items-center">
-            <div className="w-full max-w-4xl mx-auto mt-6">
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full"
-              >
-                <div className="flex justify-center mb-6">
-                  <TabsList className="flex font-vt323 w-full max-w-2xl justify-between">
-                    <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                    <TabsTrigger value="goals">Create Goals</TabsTrigger>
-                    <TabsTrigger value="allgoals">All Goals</TabsTrigger>
-                    <TabsTrigger value="rules">Rules</TabsTrigger>
-                  </TabsList>
-                </div>
-                <TabsContent value="dashboard">
-                  <div className="p-4">
-                    <div>
-                      <GoalStreak/>
+        <div className="min-h-screen bg-slate-50">
+          <div className="flex items-start p-4">
+            <div className="w-full flex flex-col items-center">
+              <div className="w-full max-w-4xl mx-auto mt-6">
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="w-full"
+                >
+                  <div className="flex justify-center mb-6">
+                    <TabsList className="flex font-vt323 w-full max-w-2xl justify-between">
+                      <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                      <TabsTrigger value="goals">Create Goals</TabsTrigger>
+                      <TabsTrigger value="allgoals">All Goals</TabsTrigger>
+                      <TabsTrigger value="rules">Rules</TabsTrigger>
+                    </TabsList>
+                  </div>
+                  <TabsContent value="dashboard">
+                    <div className="p-4">
+                      <div>
+                        <GoalStreak/>
+                      </div>
+                      <div className="p-25">
+                        {chartData ? (
+                            <GoalsBarChart chartData={chartData} />
+                        ) : (
+                            <div className="text-center p-8 text-gray-500">
+                              <p className="font-vt323 text-xl">No statistics available</p>
+                              <p className="font-vt323 mt-2">
+                                Complete goals to see your progress analytics
+                              </p>
+                            </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="p-25">
-                      {chartData ? (
-                        <GoalsBarChart chartData={chartData} />
+                  </TabsContent>
+                  <TabsContent value="goals">
+                    <div className="p-8">
+                      <GoalForm
+                          onGoalCreated={() => {
+                            setRefreshTrigger(prev => prev + 1);
+                            setActiveTab('all goals');
+                            toast.success('New quest created!', {
+                              description: 'Your new quest has been added to your log',
+                              duration: 3000
+                            });
+                          }}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="allgoals">
+                    <div className="p-4">
+                      <GoalFilters
+                          searchTerm={searchTerm}
+                          setSearchTerm={setSearchTerm}
+                          filterStatus={filterStatus}
+                          setFilterStatus={(status) => {
+                            setFilterStatus(status);
+                            if (status !== 'all') {
+                              toast.info('Filtering quests', {
+                                description: `Showing ${status} quests`,
+                                duration: 2000
+                              });
+                            }
+                          }}
+                          sortBy={sortBy}
+                          setSortBy={setSortBy}
+                          sortOrder={sortOrder}
+                          setSortOrder={setSortOrder}
+                      />
+                      {error ? (
+                          <div className="text-red-500 p-4 text-center">{error}</div>
+                      ) : filteredGoals.length === 0 ? (
+                          <div className="text-center p-8 text-gray-500">
+                            <p className="font-vt323 text-xl">No quests found</p>
+                            <p className="font-vt323 mt-2">
+                              {goals.length === 0
+                                  ? "Create your first quest to get started!"
+                                  : "No quests match your current filters"}
+                            </p>
+                          </div>
                       ) : (
-                        <div className="text-center p-8 text-gray-500">
-                          <p className="font-vt323 text-xl">No statistics available</p>
-                          <p className="font-vt323 mt-2">
-                            Complete goals to see your progress analytics
-                          </p>
-                        </div>
+                          filteredGoals.map((backendGoal) => (
+                              <GoalCard
+                                  key={backendGoal.id}
+                                  goal={{
+                                    id: backendGoal.id,
+                                    title: backendGoal.goal_title,
+                                    description: backendGoal.description,
+                                    targetDate: backendGoal.target_date,
+                                    difficulty: backendGoal.difficulty,
+                                    progress: backendGoal.progress_bar,
+                                    goal_type: backendGoal.goal_type,
+                                    status: backendGoal.progress_bar === 100
+                                        ? 'completed'
+                                        : backendGoal.progress_bar > 0
+                                            ? 'in-progress'
+                                            : 'not-started',
+                                    subtasks: backendGoal.subtasks,
+                                  }}
+                                  onDeleteAction={handleDelete}
+                                  onEditAction={handleEdit}
+                                  onProgressUpdateAction={(id, progress) => handleProgressUpdate(id, progress)}
+                              />
+                          ))
                       )}
                     </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="goals">
-                  <div className="p-8">
-                    <GoalForm
-                      onGoalCreated={() => {
-                        setRefreshTrigger(prev => prev + 1);
-                        setActiveTab('allgoals');
-                        toast.success('New quest created!', {
-                          description: 'Your new quest has been added to your log',
-                          duration: 3000
-                        });
-                      }}
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="allgoals">
-                  <div className="p-4">
-                    <GoalFilters
-                      searchTerm={searchTerm}
-                      setSearchTerm={setSearchTerm}
-                      filterStatus={filterStatus}
-                      setFilterStatus={(status) => {
-                        setFilterStatus(status);
-                        if (status !== 'all') {
-                          toast.info('Filtering quests', {
-                            description: `Showing ${status} quests`,
-                            duration: 2000
-                          });
-                        }
-                      }}
-                      sortBy={sortBy}
-                      setSortBy={setSortBy}
-                      sortOrder={sortOrder}
-                      setSortOrder={setSortOrder}
-                    />
-                    {error ? (
-                      <div className="text-red-500 p-4 text-center">{error}</div>
-                    ) : filteredGoals.length === 0 ? (
-                      <div className="text-center p-8 text-gray-500">
-                        <p className="font-vt323 text-xl">No quests found</p>
-                        <p className="font-vt323 mt-2">
-                          {goals.length === 0
-                            ? "Create your first quest to get started!"
-                            : "No quests match your current filters"}
-                        </p>
-                      </div>
-                    ) : (
-                      filteredGoals.map((backendGoal) => (
-                        <GoalCard
-                          key={backendGoal.id}
-                          goal={{
-                            id: backendGoal.id,
-                            title: backendGoal.goal_title,
-                            description: backendGoal.description,
-                            targetDate: backendGoal.target_date,
-                            difficulty: backendGoal.difficulty,
-                            progress: backendGoal.progress_bar,
-                            goal_type: backendGoal.goal_type,
-                            status: backendGoal.progress_bar === 100
-                              ? 'completed'
-                              : backendGoal.progress_bar > 0
-                                ? 'in-progress'
-                                : 'not-started',
-                            subtasks: subtasks[backendGoal.id] || []
-                          }}
-                          onDelete={handleDelete}
-                          onEdit={handleEdit}
-                          onProgressUpdate={(id, progress) => handleProgressUpdate(id, progress)}
-                          onSubtaskAdd={handleSubtaskAdd}
-                          onSubtaskToggle={handleSubtaskToggle}
-                          onSubtaskDelete={handleSubtaskDelete}
-                        />
-                      ))
-                    )}
-                  </div>
-                </TabsContent>
-                <TabsContent value="rules">
-                  <div className="p-4">
-                    <GoalRules/>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                  </TabsContent>
+                  <TabsContent value="rules">
+                    <div className="p-4">
+                      <GoalRules/>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </SidebarLayout>
+      </SidebarLayout>
   );
 }
