@@ -128,7 +128,8 @@ export default function GoalsPage() {
         });
   }, [goals, searchTerm, filterStatus, sortBy, sortOrder]);
 
-  const handleEdit = (updatedGoal:any) => {
+  // @ts-ignore-any
+  const handleEdit = (updatedGoal) => {
     setGoals(prevGoals =>
         prevGoals.map(goal =>
             goal.id === updatedGoal.id ? {
