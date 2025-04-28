@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getGoals } from '@/api/goals/getGoals';
 
 interface Goal {
@@ -12,7 +12,6 @@ interface Goal {
   goal_type: string;
 }
 
-// Proper context type definition
 interface GoalContextType {
   goals: Goal[] | null;
   fetchAllGoals: () => Promise<void>;
@@ -20,8 +19,7 @@ interface GoalContextType {
   error: string | null;
 }
 
-// Create context with correct type
-const GoalContext = createContext<GoalContextType>({
+export const GoalContext = createContext<GoalContextType>({
   goals: null,
   fetchAllGoals: async () => {},
   loading: false,
@@ -36,14 +34,10 @@ export const useGoals = () => {
   return context;
 };
 
-interface GoalProviderProps {
-  children: ReactNode;
-}
-
-// Fixed the component declaration
-export const GoalProvider: React.FC<GoalProviderProps> = ({ children }) => {
+//provider component
+export const GoalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [goals, setGoals] = useState<Goal[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAllGoals = async () => {
@@ -56,23 +50,29 @@ export const GoalProvider: React.FC<GoalProviderProps> = ({ children }) => {
       } else {
         setError('Failed to fetch goals');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Error fetching goals:', error);
       setError('An error occurred while fetching goals');
     } finally {
       setLoading(false);
     }
   };
 
+  // Load goals on first render
   useEffect(() => {
     fetchAllGoals();
   }, []);
 
+  const value: GoalContextType = {
+    goals,
+    fetchAllGoals,
+    loading,
+    error
+  };
+
   return (
-    <GoalContext.Provider value={{ goals, fetchAllGoals, loading, error }}>
+    <GoalContext.Provider value={value}>
       {children}
     </GoalContext.Provider>
   );
 };
-
-// Export the context to make it accessible
-export { GoalContext };

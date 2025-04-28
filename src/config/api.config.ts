@@ -8,7 +8,7 @@ export const API_CONFIG = {
         POST_GOAL: '/api/goals/',
         GET_GOALS: '/api/goals/goals/with-subtasks/',
         UPDATE_PROGRESS: '/api/goals/progress/{goal_id}/',
-        DELETE_GOAL: '/api/goals/delete/{goal_id}/',
+        DELETE_GOAL: '/api/goals/goal/{goal_id}/',
         GOAL_STATS: '/api/goals/goal-stats',
         GOAL_PROFILE:'/api/goals/get-goal-profile',
         UPDATE_GOAL: '/api/goals/update/{goal_id}/',

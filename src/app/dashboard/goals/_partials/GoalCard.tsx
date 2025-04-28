@@ -205,7 +205,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                         ) : null}
                       </div>
                       <div className="space-y-2">
-                        <div className="flex justify-between">
+                        <div className="flex justify-between">sss
                           <span className="text-sm text-gray-600 font-vt323">Progress</span>
                           <span className="text-sm font-medium font-vt323">{goal.progress}%</span>
                         </div>

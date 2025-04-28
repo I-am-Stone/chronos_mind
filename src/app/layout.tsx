@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { VT323 } from 'next/font/google';
 import "./globals.css";
