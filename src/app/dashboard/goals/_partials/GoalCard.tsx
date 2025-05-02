@@ -4,12 +4,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { PencilIcon, TrashIcon, CalendarIcon, CheckIcon, XIcon } from "lucide-react";
+import {addSubtask} from "@/api/goals/postSubtask";
+import {
+  PencilIcon,
+  TrashIcon,
+  CalendarIcon,
+  CheckIcon,
+  XIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  PlusIcon
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateGoal } from "@/api/goals/goalUpdate";
+import { Checkbox } from "@/components/ui/checkbox";
+import {SubtaskComplete} from "@/api/goals/subtaskComplete";
+import { toast } from "sonner";
+
+interface Subtask {
+  id: number;
+  title: string;
+  completed: boolean;
+}
 
 interface Goal {
   id: number;
@@ -20,7 +39,7 @@ interface Goal {
   progress: number;
   difficulty: string;
   goal_type: string;
-  subtasks:[];
+  subtasks: Subtask[];
 }
 
 interface GoalCardProps {
@@ -28,6 +47,7 @@ interface GoalCardProps {
   onEditAction: (goal: Goal) => void;
   onDeleteAction: (id: number) => void;
   onProgressUpdateAction: (id: number, progress: number) => void;
+  onSubtaskUpdateAction?: (goalId: number, subtasks: Subtask[]) => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -54,9 +74,13 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                                                     onEditAction,
                                                     onDeleteAction,
                                                     onProgressUpdateAction,
+                                                    onSubtaskUpdateAction,
                                                   }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedGoal, setEditedGoal] = useState<Goal>({ ...goal });
+  const [subtasksExpanded, setSubtasksExpanded] = useState(false);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
+  const [subtasks, setSubtasks] = useState<Subtask[]>(goal.subtasks || []);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -86,6 +110,120 @@ export const GoalCard: React.FC<GoalCardProps> = ({
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newProgress = Math.min(100, Math.max(0, Number(e.target.value)));
     onProgressUpdateAction(goal.id, newProgress);
+  };
+
+  const toggleSubtasks = () => {
+    setSubtasksExpanded(!subtasksExpanded);
+  };
+
+  const handleAddSubtask = async () => {
+    if (newSubtaskTitle.trim() === "") {
+      toast.warning("Subtask title cannot be empty");
+      return;
+    }
+
+    try {
+      const toastId = toast.loading("Adding subtask...");
+      const response = await addSubtask(goal.id, newSubtaskTitle);
+
+      if (response.success && response.data) {
+        const newSubtask: Subtask = {
+          id: response.data.id,
+          title: response.data.title,
+          completed: false
+        };
+
+        const updatedSubtasks = [...subtasks, newSubtask];
+        setSubtasks(updatedSubtasks);
+        setNewSubtaskTitle("");
+
+        toast.success("Subtask added successfully!", { id: toastId });
+
+        if (onSubtaskUpdateAction) {
+          onSubtaskUpdateAction(goal.id, updatedSubtasks);
+        }
+      } else {
+        toast.error(response.message || "Failed to add subtask", { id: toastId });
+      }
+    } catch (error) {
+      toast.error("An error occurred while adding subtask");
+      console.error("Error adding subtask:", error);
+    }
+  };
+
+  const handleDeleteSubtask = async (subtaskId: number) => {
+    const subtaskToDelete = subtasks.find(subtask => subtask.id === subtaskId);
+    if (!subtaskToDelete) return;
+
+    try {
+      const toastId = toast.loading(`Deleting "${subtaskToDelete.title}"...`);
+
+      // Call your delete API here if you have one
+      // await deleteSubtaskAPI(subtaskId);
+
+      const updatedSubtasks = subtasks.filter(subtask => subtask.id !== subtaskId);
+      setSubtasks(updatedSubtasks);
+
+      toast.success(`Subtask deleted successfully`, { id: toastId });
+
+      if (onSubtaskUpdateAction) {
+        onSubtaskUpdateAction(goal.id, updatedSubtasks);
+      }
+    } catch (error) {
+      toast.error("Failed to delete subtask");
+      console.error("Error deleting subtask:", error);
+    }
+  };
+
+  const handleToggleSubtaskCompletion = async (subtaskId: number) => {
+    // Find the current subtask
+    const currentSubtask = subtasks.find(subtask => subtask.id === subtaskId);
+    if (!currentSubtask) return;
+
+    // Optimistically update UI
+    const updatedSubtasks = subtasks.map(subtask =>
+        subtask.id === subtaskId
+            ? { ...subtask, completed: !subtask.completed }
+            : subtask
+    );
+    setSubtasks(updatedSubtasks);
+
+    try {
+      // Show loading toast
+      const toastId = toast.loading(
+          `${currentSubtask.completed ? 'Uncompleting' : 'Completing'} subtask...`
+      );
+
+      // Call API
+      const response = await SubtaskComplete(subtaskId);
+
+      if (response.success) {
+        toast.success(
+            `Subtask "${currentSubtask.title}" ${currentSubtask.completed ? 'marked incomplete' : 'completed'}!`,
+            { id: toastId }
+        );
+
+        // Update parent component if needed
+        if (onSubtaskUpdateAction) {
+          onSubtaskUpdateAction(goal.id, updatedSubtasks);
+        }
+      } else {
+        // Revert on failure
+        setSubtasks(subtasks);
+        toast.error(
+            `Failed to update subtask: ${response.message || response.error}`,
+            { id: toastId }
+        );
+      }
+    } catch (error) {
+      // Revert on error
+      setSubtasks(subtasks);
+      toast.error(
+          'An unexpected error occurred while updating the subtask',
+          { id: toastId }
+      );
+      console.error("Error updating subtask completion:", error);
+    }
   };
 
   const daysRemaining = getDaysRemaining(goal.targetDate);
@@ -142,9 +280,6 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                             <SelectContent>
                               <SelectItem value="personal">Personal</SelectItem>
                               <SelectItem value="professional">Professional</SelectItem>
-                              <SelectItem value="health">Health</SelectItem>
-                              <SelectItem value="financial">Financial</SelectItem>
-                              <SelectItem value="educational">Educational</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -205,7 +340,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                         ) : null}
                       </div>
                       <div className="space-y-2">
-                        <div className="flex justify-between">sss
+                        <div className="flex justify-between">
                           <span className="text-sm text-gray-600 font-vt323">Progress</span>
                           <span className="text-sm font-medium font-vt323">{goal.progress}%</span>
                         </div>
@@ -220,6 +355,78 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                               className="w-20"
                           />
                         </div>
+                      </div>
+
+                      {/* Subtasks Section */}
+                      <div className="border-t pt-2 mt-4">
+                        <Button
+                            variant="ghost"
+                            onClick={toggleSubtasks}
+                            className="flex w-full justify-between items-center p-2 text-sm"
+                        >
+                          <span className="font-medium">Subtasks ({subtasks.filter(st => st.completed).length}/{subtasks.length})</span>
+                          {subtasksExpanded ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
+                        </Button>
+
+                        {subtasksExpanded && (
+                            <div className="space-y-3 mt-2">
+                              {/* Subtasks List */}
+                              {subtasks.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {subtasks.map((subtask) => (
+                                        <div key={subtask.id} className="flex items-center gap-2 group">
+                                          <div className="flex-1 flex items-center gap-2">
+                                            <Checkbox
+                                                id={`subtask-${subtask.id}`}
+                                                checked={subtask.completed}
+                                                onCheckedChange={() => handleToggleSubtaskCompletion(subtask.id)}
+                                            />
+                                            <label
+                                                htmlFor={`subtask-${subtask.id}`}
+                                                className={`text-sm ${subtask.completed ? 'line-through text-gray-500' : ''}`}
+                                            >
+                                              {subtask.title}
+                                            </label>
+                                          </div>
+                                          <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                              onClick={() => handleDeleteSubtask(subtask.id)}
+                                          >
+                                            <TrashIcon className="h-3 w-3 text-red-500" />
+                                          </Button>
+                                        </div>
+                                    ))}
+                                  </div>
+                              ) : (
+                                  <p className="text-sm text-gray-500 italic">No subtasks yet</p>
+                              )}
+
+                              {/* Add New Subtask */}
+                              <div className="flex gap-2 items-center mt-3">
+                                <Input
+                                    type="text"
+                                    placeholder="New subtask..."
+                                    value={newSubtaskTitle}
+                                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                                    className="text-sm"
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        handleAddSubtask();
+                                      }
+                                    }}
+                                />
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleAddSubtask}
+                                >
+                                  <PlusIcon className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                        )}
                       </div>
                     </div>
                   </>
