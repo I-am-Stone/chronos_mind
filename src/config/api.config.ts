@@ -15,7 +15,7 @@ export const API_CONFIG = {
         SUB_TASK: '/api/goals/subtasks/create/',
         SUB_TASK_LIST: '/api/goals/subtasks/',
         DELETE_SUB_TASK: '/api/goals/subtasks/{id}/delete/',
-        COMPLETE_SUB_TASK: '/api/goals/subtasks/{id}/toggle-complete/',
+        COMPLETE_SUB_TASK: '/api/goals/subtasks/{id}/toggle/',
 
         //habits
         POST_HABITS: '/api/habits/',
